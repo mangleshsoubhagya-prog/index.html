@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Reports Download</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+font-family:Poppins;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+text-align:center;
+}
+
+.navbar{
+display:flex;
+justify-content:space-between;
+padding:15px 25px;
+background:rgba(255,255,255,0.08);
+}
+
+.logout{
+background:#ff4b2b;
+padding:6px 12px;
+border-radius:20px;
+cursor:pointer;
+}
+
+.box{
+margin-top:50px;
+}
+
+input{
+padding:10px;
+border-radius:10px;
+border:none;
+margin:10px;
+}
+
+.btn{
+padding:12px 25px;
+border:none;
+border-radius:30px;
+background:linear-gradient(45deg,#00f5a0,#00d9f5);
+cursor:pointer;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+<h2>📊 Reports</h2>
+<div>
+<span id="userName"></span>
+<span class="logout" onclick="logout()">Logout</span>
+</div>
+</div>
+
+<div class="box">
+
+<h3>Select Date Range</h3>
+
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+
+<br>
+
+<button class="btn" onclick="downloadReport()">⬇ Download Report</button>
+
+</div>
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbxIoXdbgjTD_gvhtnqWBDUI0ShrSy7Je5_ezCRk_xx535NmHgpRzfFpi76VbtBXvLz-NA/exec";
+
+let user = localStorage.getItem("user") || "";
+let role = localStorage.getItem("role") || "user";
+
+document.getElementById("userName").innerText = user;
+
+/* LOGIN CHECK */
+if(!user){
+window.location.href="login.html";
+}
+
+/* DOWNLOAD */
+function downloadReport(){
+
+let from = document.getElementById("fromDate").value;
+let to = document.getElementById("toDate").value;
+
+if(!from || !to){
+alert("Select both dates");
+return;
+}
+
+let url = API_URL + "?type=report";
+url += "&from=" + from;
+url += "&to=" + to;
+
+/* USER FILTER */
+if(role.toLowerCase() !== "admin"){
+url += "&user=" + encodeURIComponent(user);
+}
+
+window.open(url);
+}
+
+/* LOGOUT */
+function logout(){
+localStorage.clear();
+window.location.href="login.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Glass Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:black;
+  font-family:Arial;
+  overflow:hidden;
+}
+
+/* Glow */
+body::before{
+  content:'';
+  position:absolute;
+  width:600px;
+  height:600px;
+  background:radial-gradient(circle,#00f2ff33,#ff00ff22,transparent);
+  filter:blur(80px);
+}
+
+/* Circle */
+.circle{
+  width:350px;
+  height:350px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter: blur(25px);
+  border:1px solid rgba(255,255,255,0.2);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  color:white;
+}
+
+/* Input */
+.input-box{
+  width:80%;
+  margin:15px 0;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:25px;
+  border:none;
+  background:rgba(255,255,255,0.2);
+  color:rgb(253, 251, 250);
+font-size:20px;
+border-bottom:4px solid #09f7cfec;
+  box-shadow: 0 8px 9px rgba(0, 255, 221, 0.973);
+
+
+}
+
+
+button{
+  margin-top:20px;
+  padding:13px 38px;
+  border-radius:25px;
+  border:none;
+  background:linear-gradient(135deg,#00c6ff,#0072ff);
+  color:rgb(248, 240, 240);
+  cursor:pointer;
+  border-bottom:4px solid #09f7cfec;
+  box-shadow: 0 8px 9px rgba(0, 255, 221, 0.973);
+
+}
+
+/* Error */
+#error{
+  color:red;
+  font-size:13px;
+}
+
+.success{
+  background:#28a745 !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="circle">
+
+<h2>LOGIN</h2>
+
+<div class="input-box">
+  <input id="userid" placeholder="Username">
+</div>
+
+<div class="input-box">
+  <input id="password" type="password" placeholder="Password">
+</div>
+
+<div id="error"></div>
+
+<button onclick="login()">LOGIN</button>
+
+</div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbzxz8lwEUWCFW6_AHGzf4iY1p4crGIuMSjuw3JVVtoNzYPXDW2OZJof1mxml9dRlLyVOw/exec"; // ⚠️ यहाँ अपना script URL डालना
+
+function login(){
+
+let id = document.getElementById("userid").value;
+let pass = document.getElementById("password").value;
+
+if(!id || !pass){
+  error.innerText="❌ Enter details";
+  return;
+}
+
+fetch(API_URL,{
+method:"POST",
+body:new URLSearchParams({
+action:"login",
+userid:id,
+password:pass
+})
+})
+.then(res=>res.text())
+.then(data=>{
+
+if(data.startsWith("SUCCESS")){
+
+let role = data.split("|")[1].toLowerCase();
+
+// 🔐 SAVE LOGIN
+localStorage.setItem("user", id);
+localStorage.setItem("role", role);
+
+// 🎉 SUCCESS ANIMATION
+document.querySelector(".circle").classList.add("success");
+
+setTimeout(()=>{
+  window.location.href="dashboard.html";
+},800);
+
+}else{
+error.innerText="❌ Invalid Login";
+}
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
