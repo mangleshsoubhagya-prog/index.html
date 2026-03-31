@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -13,7 +14,7 @@ body{
 margin:0;
 font-family:Poppins;
 background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:rgb(238, 12, 12);
+color:white;
 }
 
 .navbar{
@@ -21,87 +22,36 @@ display:flex;
 justify-content:space-between;
 padding:15px;
 background:rgba(255,255,255,0.08);
-border-bottom:4px solid #ebc107ec;
-  box-shadow: 0 8px 9px rgba(229, 255, 0, 0.973);
-
 }
 
-.center{text-align:center;margin:25px;}
+.center{text-align:center;margin:20px;}
 
-/* BUTTON */
 .btn{
-padding:12px 15px;
+padding:10px 15px;
 border:none;
 border-radius:25px;
 cursor:pointer;
-font-weight:bold;
-flex:1;
-border-bottom:4px solid #ebc107ec;
-  box-shadow: 0 8px 9px rgba(229, 255, 0, 0.973);
+margin:5px;
 }
 
-/* HEADER */
-.modal-header{
-display:flex;
-align-items:center;
-justify-content:center;
-gap:10px;
-margin-bottom:15px;
-}
-
-.modal-header .icon{
-font-size:26px;
-}
-
-.modal-header h2{
-margin:0;
-font-size:22px;
-}
-
-/* INPUT */
-.modal-box input{
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-margin:15px 0;
-font-size:14px;
-outline:none;
-}
-
-/* BUTTON GROUP */
-.btn-group{
-display:flex;
-gap:10px;
-justify-content:center;
-}
-table{
-width:100%;
-background:rgb(89, 238, 84);
-color:black;
-border-collapse:collapse;
-border-bottom:4px solid #07dcebd7;
-  box-shadow: 0 8px 9px rgba(0, 255, 242, 0.973);
-
-}
-td,th{
-padding:10px;
-border:1px solid #f1b308;
-}
 .logout-btn{
-background:linear-gradient(45deg,#ff416c,#ff4b2b);
+background:#ff4b2b;
 color:white;
 border:none;
 padding:8px 15px;
 border-radius:20px;
 cursor:pointer;
-font-weight:bold;
-box-shadow:0 5px 15px rgba(255,0,0,0.5);
-transition:0.3s;
 }
 
-.logout-btn:hover{
-transform:scale(1.05);
+table{
+width:100%;
+background:white;
+color:black;
+border-collapse:collapse;
+}
+td,th{
+padding:10px;
+border:1px solid #ddd;
 }
 
 .modal{
@@ -109,70 +59,38 @@ display:none;
 position:fixed;
 top:0;left:0;
 width:100%;height:100%;
-background:rgba(226, 9, 9, 0.014);
+background:rgba(0,0,0,0.6);
 justify-content:center;
 align-items:center;
-z-index:999;
-
 }
 
 .modal-box{
 background:rgba(255,255,255,0.1);
-backdrop-filter:blur(25px);
-padding:30px;
-border-radius:20px;
+backdrop-filter:blur(20px);
+padding:20px;
+border-radius:15px;
 width:90%;
 max-width:400px;
 text-align:center;
-color:white;
-box-shadow:0 0 25px rgba(0,255,255,0.5);
-border:1px solid rgba(255,255,255,0.2);
 }
 
 #map{
-height:320px;
-border-radius:15px;
+height:300px;
 margin-top:10px;
-}
-.success{
-background:linear-gradient(45deg,#00f5a0,#00d9f5);
-color:black;
-}
-/* COLORS */
-.primary{
-background:linear-gradient(45deg,#00c6ff,#0072ff);
-color:white;
-}
-
-select{
-padding:10px;
-border-radius:10px;
-margin-top:10px;
-width:100%;
-}
-/* CLOSE */
-.close-btn{
-margin-top:15px;
-background:#ff4b2b;
-color:white;
-padding:8px 15px;
-border:none;
-border-radius:20px;
-cursor:pointer;
 }
 </style>
 
 </head>
 
 <body>
+
 <div class="navbar">
 <h2>Dashboard</h2>
 
-<div style="display:flex;align-items:center;gap:15px;">
-  <span id="userName"></span>
-
-  <button class="logout-btn" onclick="logout()">
-  <i class="fas fa-sign-out-alt"></i> Logout
+<div>
+<span id="userName"></span>
+<button class="logout-btn" onclick="logout()">
+<i class="fas fa-sign-out-alt"></i> Logout
 </button>
 </div>
 
@@ -196,32 +114,29 @@ cursor:pointer;
 <tbody id="historyTable"></tbody>
 </table>
 
-<!-- ATTENDANCE MODAL -->
+<!-- ATTENDANCE -->
 <div id="attendanceModal" class="modal">
 <div class="modal-box">
 
-<div class="modal-header">
-  <span class="icon">📍</span>
-  <h2>Mark Attendance</h2>
-</div>
+<h3>📍 Mark Attendance</h3>
 
-<input id="place" placeholder="📍 Enter your location">
+<input id="place" placeholder="Enter Place">
 
-<div class="btn-group">
-  <button class="btn primary" onclick="getLocation()">📡 Get Location</button>
-  <button id="submitBtn" class="btn success" onclick="submitAttendance()">✅ Submit</button>
-</div>
+<br><br>
+<button class="btn" onclick="getLocation()">📡 Get Location</button>
+<button id="submitBtn" class="btn" onclick="submitAttendance()">Submit</button>
 
-<button class="close-btn" onclick="closeAttendance()">✖ Close</button>
+<br><br>
+<button onclick="closeAttendance()">Close</button>
 
 </div>
 </div>
 
-<!-- TRACK MODAL -->
+<!-- MAP -->
 <div id="mapModal" class="modal">
 <div class="modal-box">
 
-<h3>📡 Live Tracking</h3>
+<h3>📡 Tracking</h3>
 
 <select id="userSelect" onchange="loadUserRoute()"></select>
 
@@ -236,33 +151,35 @@ cursor:pointer;
 <script>
 
 /* ROLE */
-let role = localStorage.getItem("role") || "user";
-let isAdmin = (role.toLowerCase() === "admin");
+let role = (localStorage.getItem("role") || "user").toLowerCase();
+let isAdmin = (role === "admin");
 
-/* API */
-const API_URL="https://script.google.com/macros/s/AKfycbxIoXdbgjTD_gvhtnqWBDUI0ShrSy7Je5_ezCRk_xx535NmHgpRzfFpi76VbtBXvLz-NA/exec";
-
-/* GLOBAL */
-let lat="", lon="";
-let map, marker, polyline;
-let allData=[];
+/* USER */
 let user = localStorage.getItem("user");
 
-/* LOGIN CHECK */
 if(!user){
 alert("Login required");
 window.location.href="login.html";
 }
 
 document.getElementById("userName").innerText=user;
+
+/* HIDE USER FEATURES */
 if(!isAdmin){
-  document.getElementById("trackHeader").style.display="none";
+document.getElementById("trackHeader").style.display="none";
 }
-/* ATTENDANCE MODAL */
+
+/* API */
+const API_URL="https://script.google.com/macros/s/AKfycbxIoXdbgjTD_gvhtnqWBDUI0ShrSy7Je5_ezCRk_xx535NmHgpRzfFpi76VbtBXvLz-NA/exec";
+
+let lat="", lon="";
+let map, marker, polyline;
+let allData=[];
+
+/* MODAL */
 function openAttendance(){
 document.getElementById("attendanceModal").style.display="flex";
 }
-
 function closeAttendance(){
 document.getElementById("attendanceModal").style.display="none";
 }
@@ -272,7 +189,7 @@ function getLocation(){
 navigator.geolocation.getCurrentPosition(pos=>{
 lat=pos.coords.latitude;
 lon=pos.coords.longitude;
-alert("Location Captured");
+alert("Location captured");
 });
 }
 
@@ -285,7 +202,7 @@ btn.disabled=true;
 let place=document.getElementById("place").value;
 
 if(!place || !lat){
-alert("Fill all fields");
+alert("Fill all");
 btn.disabled=false;
 return;
 }
@@ -319,46 +236,49 @@ loadData();
 /* LOAD DATA */
 function loadData(){
 
-fetch(API_URL+"?type=history")
+historyTable.innerHTML="<tr><td colspan='5'>Loading...</td></tr>";
+
+let today = new Date().toISOString().split("T")[0];
+
+let url = API_URL+"?type=history&date="+today;
+
+if(!isAdmin){
+url += "&user=" + encodeURIComponent(user);
+}
+
+fetch(url)
 .then(res=>res.json())
 .then(data=>{
 
 allData=data;
 
-let html="";
-let users=new Set();
+/* FILTER */
+let filteredData = isAdmin ? data : data.filter(d => d.name === user);
 
-data.forEach(d=>{
+/* USER LIST */
+let users=[...new Set(data.map(d=>d.name))];
+document.getElementById("userSelect").innerHTML =
+users.map(u=>`<option value="${u}">${u}</option>`).join("");
 
-users.add(d.name);
-
-html+=`
+/* TABLE */
+let rows = filteredData.map(d=>`
 <tr>
 <td>${d.date}</td>
 <td>${d.name}</td>
 <td>${d.place}</td>
-
 <td>${d.lat?`<a href="https://maps.google.com?q=${d.lat},${d.lon}" target="_blank">📍</a>`:"-"}</td>
-
 <td style="${isAdmin ? '' : 'display:none'}">
 ${isAdmin ? `<button onclick="openMap()">📡</button>` : ""}
 </td>
-</tr>`;
-});
+</tr>
+`).join("");
 
-/* DROPDOWN */
-let options="";
-users.forEach(u=>{
-options+=`<option value="${u}">${u}</option>`;
-});
-document.getElementById("userSelect").innerHTML=options;
-
-document.getElementById("historyTable").innerHTML=html;
+historyTable.innerHTML = rows;
 
 });
 }
 
-/* OPEN MAP */
+/* MAP */
 function openMap(){
 
 if(!isAdmin){
@@ -368,21 +288,19 @@ return;
 
 document.getElementById("mapModal").style.display="flex";
 
-/* RESET MAP */
 setTimeout(()=>{
 
-document.getElementById("map").innerHTML="";
-
+if(!map){
 map = L.map('map').setView([22.5,78.9],5);
-
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+}
 
 loadUserRoute();
 
 },200);
 }
 
-/* LOAD ROUTE */
+/* ROUTE */
 function loadUserRoute(){
 
 let selected=document.getElementById("userSelect").value;
@@ -390,18 +308,13 @@ let selected=document.getElementById("userSelect").value;
 if(marker) map.removeLayer(marker);
 if(polyline) map.removeLayer(polyline);
 
-let points=[];
+let points = allData
+.filter(d=>d.name===selected && d.lat && d.lon)
+.map(d=>[d.lat,d.lon]);
 
-allData.filter(d=>d.name===selected).forEach(d=>{
-if(d.lat && d.lon){
-points.push([d.lat,d.lon]);
-}
-});
-
-if(points.length>0){
+if(points.length){
 
 polyline = L.polyline(points,{color:'cyan'}).addTo(map);
-
 marker = L.marker(points[points.length-1]).addTo(map);
 
 map.fitBounds(polyline.getBounds());
@@ -415,18 +328,26 @@ document.getElementById("mapModal").style.display="none";
 
 /* CSV */
 function downloadCSV(){
-window.open(API_URL+"?type=csv&user="+user);
+let url = API_URL+"?type=csv";
+
+if(!isAdmin){
+url += "&user=" + encodeURIComponent(user);
+}
+
+window.open(url);
+}
+
+/* LOGOUT */
+function logout(){
+if(confirm("Logout?")){
+localStorage.clear();
+window.location.href="login.html";
+}
 }
 
 /* INIT */
 loadData();
 
-function logout(){
-if(confirm("Logout karna hai?")){
-localStorage.clear();
-window.location.href="login.html";
-}
-}
 </script>
 
 </body>
