@@ -282,6 +282,9 @@ if(allData.some(d=>d.name===user && d.date===today)){
 alert("Already submitted today");
 return;
 }
+    function goHome(){
+  window.location.href = "dashboard.html";
+}
 
 fetch(API_URL,{
 method:"POST",
