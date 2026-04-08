@@ -251,6 +251,9 @@ box-shadow:0 5px 15px rgba(0,255,204,0.5);
 </div>
 
 <script>
+      function goHome(){
+  window.location.href = "dashboard.html";
+}
     let role = (localStorage.getItem("role") || "user").toLowerCase();
 let isAdmin = role === "admin";
 
@@ -282,9 +285,7 @@ if(allData.some(d=>d.name===user && d.date===today)){
 alert("Already submitted today");
 return;
 }
-    function goHome(){
-  window.location.href = "dashboard.html";
-}
+  
 
 fetch(API_URL,{
 method:"POST",
