@@ -4,7 +4,6 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -17,6 +16,7 @@ background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:white;
 }
 
+/* NAV */
 .navbar{
 display:flex;
 justify-content:space-between;
@@ -24,110 +24,209 @@ padding:15px;
 background:rgba(255,255,255,0.08);
 }
 
-.center{text-align:center;margin:20px;}
-
-.btn{
-padding:10px 15px;
-border:none;
-border-radius:25px;
-cursor:pointer;
-margin:5px;
-}
-
-.logout-btn{
-background:#ff4b2b;
+button{
+background:#49ee08;
 color:white;
 border:none;
 padding:8px 15px;
 border-radius:20px;
 cursor:pointer;
+transition:0.3s;
 }
 
-table{
+button:hover{
+background:#ff1e00;
+transform:scale(1.1);
+box-shadow:0 5px 15px rgba(255,75,43,0.5);
+}
+/* CARD */
+.glass{
+background: rgba(255,255,255,0.08);
+backdrop-filter: blur(20px);
+border-radius:20px;
+padding:15px;
+margin:10px;
+}
+
+/* CALENDAR */
+.calendar-grid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:8px;
+}
+
+.day{
+padding:12px;
+text-align:center;
+border-radius:12px;
+cursor:pointer;
+position:relative;
+background:rgba(255,255,255,0.08);
+transition:all 0.3s ease;
+overflow:hidden;
+}
+.logout-btn{
+background:linear-gradient(135deg,#ff4b2b,#ff416c);
+color:white;
+border:none;
+padding:8px 18px;
+border-radius:25px;
+cursor:pointer;
+font-weight:bold;
+transition:all 0.3s ease;
+box-shadow:0 5px 15px rgba(255,75,43,0.4);
+}
+
+.logout-btn:hover{
+transform:scale(1.1) rotate(-2deg);
+box-shadow:0 10px 25px rgba(255,75,43,0.7);
+}
+
+/* ✨ Hover Effect */
+.day:hover{
+transform:translateY(-6px) scale(1.05);
+box-shadow:0 10px 25px rgba(0,255,204,0.4);
+}
+
+/* 💡 Glow Effect */
+.day::before{
+content:"";
+position:absolute;
+top:0;
+left:-100%;
 width:100%;
-background:white;
-color:black;
-border-collapse:collapse;
-}
-td,th{
-padding:10px;
-border:1px solid #ddd;
+height:100%;
+background:linear-gradient(120deg,transparent,rgba(0,255,204,0.4),transparent);
+transition:0.5s;
 }
 
+.day:hover::before{
+left:100%;
+}
+.p:hover{
+box-shadow:0 10px 25px rgba(0,255,204,0.6);
+}
+
+.a:hover{
+box-shadow:0 10px 25px rgba(255,75,43,0.6);
+}
+.today{
+border:2px solid yellow;
+animation:glow 1.5s infinite alternate;
+}
+
+@keyframes glow{
+from{box-shadow:0 0 5px yellow;}
+to{box-shadow:0 0 20px yellow;}
+}
+.day{
+transition:all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.today{border:2px solid yellow;}
+
+.p{background:#08e613;color:#fcf4f4;}
+.a{background:#ff4b2b;color:#fff;}
+
+.day small{
+display:block;
+font-size:10px;
+}
+
+/* MODAL */
 .modal{
 display:none;
 position:fixed;
 top:0;left:0;
 width:100%;height:100%;
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.7);
 justify-content:center;
 align-items:center;
 }
 
 .modal-box{
-background:rgba(255,255,255,0.1);
-backdrop-filter:blur(20px);
+background:#111;
 padding:20px;
 border-radius:15px;
 width:90%;
-max-width:400px;
-text-align:center;
+max-width:500px;
 }
 
-#map{
-height:300px;
-margin-top:10px;
+input{
+width:100%;
+padding:10px;
+margin:5px;
+border-radius:10px;
+border:none;
 }
+#engineerList div{
+transition:0.3s;
+}
+
+#engineerList div:hover{
+background:#00ffcc;
+color:#000;
+transform:scale(1.05);
+box-shadow:0 5px 15px rgba(0,255,204,0.5);
+}
+
+#map{height:300px;}
 </style>
-
 </head>
 
 <body>
 
 <div class="navbar">
 <h2>Dashboard</h2>
-
 <div>
 <span id="userName"></span>
-<button class="logout-btn" onclick="logout()">
-<i class="fas fa-sign-out-alt"></i> Logout
-</button>
+<button onclick="logout()">Logout</button>
+</div>
 </div>
 
-</div>
-
-<div class="center">
+<div class="glass">
 <button class="btn" onclick="openAttendance()">📍 Mark Attendance</button>
-<button class="btn" onclick="downloadCSV()">📊 CSV</button>
+<button class="btn" onclick="openDownload()">📥 Download</button>
 </div>
 
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Name</th>
-<th>Place</th>
-<th>Map</th>
-<th id="trackHeader">Track</th>
-</tr>
-</thead>
-<tbody id="historyTable"></tbody>
-</table>
+<!-- CALENDAR -->
+<div class="glass">
+<h3 style="text-align:center;">
+<button class="btn" onclick="prevMonth()">⬅</button>
+<span id="monthLabel"></span>
+<button class="btn" onclick="nextMonth()">➡</button>
+</h3>
 
-<!-- ATTENDANCE -->
+<div id="calendarGrid" class="calendar-grid"></div>
+
+<div>
+<h3>👷 Engineers</h3>
+<div id="engineerList">Click any date...</div>
+</div>
+</div>
+
+<!-- ATTENDANCE MODAL -->
 <div id="attendanceModal" class="modal">
 <div class="modal-box">
 
-<h3>📍 Mark Attendance</h3>
+<h3>Mark Attendance</h3>
+<input id="manualPlace" placeholder="Enter Place">
+<input id="autoLocation" readonly>
 
-<input id="place" placeholder="Enter Place">
+<button class="btn" onclick="submitAttendance()">Submit</button>
+<button class="btn" onclick="closeAttendance()">Close</button>
 
-<br><br>
-<button class="btn" onclick="getLocation()">📡 Get Location</button>
-<button id="submitBtn" class="btn" onclick="submitAttendance()">Submit</button>
+</div>
+</div>
 
-<br><br>
-<button onclick="closeAttendance()">Close</button>
+<!-- DOWNLOAD MODAL -->
+<div id="downloadModal" class="modal">
+<div class="modal-box">
+
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+
+<button class="btn" onclick="downloadCSV()">Download</button>
+<button class="btn" onclick="closeDownload()">Close</button>
 
 </div>
 </div>
@@ -136,74 +235,47 @@ margin-top:10px;
 <div id="mapModal" class="modal">
 <div class="modal-box">
 
-<h3>📡 Tracking</h3>
-
-<select id="userSelect" onchange="loadUserRoute()"></select>
+<h3 id="userTitle"></h3>
+<div id="userStats"></div>
 
 <div id="map"></div>
 
-<br>
-<button onclick="closeMap()">Close</button>
+<button class="btn" onclick="playRoute()">▶ Play</button>
+<button class="btn" onclick="closeMap()">Close</button>
 
 </div>
 </div>
 
 <script>
+    let role = (localStorage.getItem("role") || "user").toLowerCase();
+let isAdmin = role === "admin";
 
-/* ROLE */
-let role = (localStorage.getItem("role") || "user").toLowerCase();
-let isAdmin = (role === "admin");
-
-/* USER */
-let user = localStorage.getItem("user");
-
-if(!user){
-alert("Login required");
-window.location.href="login.html";
-}
-
-document.getElementById("userName").innerText=user;
-
-/* HIDE USER FEATURES */
-if(!isAdmin){
-document.getElementById("trackHeader").style.display="none";
-}
-
-/* API */
 const API_URL="https://script.google.com/macros/s/AKfycbxIoXdbgjTD_gvhtnqWBDUI0ShrSy7Je5_ezCRk_xx535NmHgpRzfFpi76VbtBXvLz-NA/exec";
+let user=localStorage.getItem("user");
+if(!user) location.href="login.html";
+userName.innerText=user;
 
-let lat="", lon="";
-let map, marker, polyline;
-let allData=[];
+let allData=[],map,marker,polyline,routePoints=[];
+let currentDate=new Date();
+let lat="",lon="";
 
-/* MODAL */
+/* ATTENDANCE */
 function openAttendance(){
-document.getElementById("attendanceModal").style.display="flex";
-}
-function closeAttendance(){
-document.getElementById("attendanceModal").style.display="none";
-}
+attendanceModal.style.display="flex";
 
-/* LOCATION */
-function getLocation(){
 navigator.geolocation.getCurrentPosition(pos=>{
 lat=pos.coords.latitude;
 lon=pos.coords.longitude;
-alert("Location captured");
+autoLocation.value=lat+","+lon;
 });
 }
 
-/* SUBMIT */
 function submitAttendance(){
 
-let btn=document.getElementById("submitBtn");
-btn.disabled=true;
+let today=new Date().toISOString().split("T")[0];
 
-let place=document.getElementById("place").value;
-
-if(!place || !lat){
-alert("Fill all");
-btn.disabled=false;
+if(allData.some(d=>d.name===user && d.date===today)){
+alert("Already submitted today");
 return;
 }
 
@@ -211,144 +283,170 @@ fetch(API_URL,{
 method:"POST",
 body:JSON.stringify({
 name:user,
-place:place,
-lat:lat,
-lon:lon,
-date:new Date().toISOString().split("T")[0]
+place:manualPlace.value,
+lat,lon,
+date:today
 })
-})
-.then(res=>res.text())
-.then(res=>{
-
-if(res==="already"){
-alert("Already marked");
-btn.disabled=false;
-return;
-}
-
+}).then(()=>{
 alert("Saved");
 closeAttendance();
 loadData();
-
 });
 }
 
-/* LOAD DATA */
-function loadData(){
+function closeAttendance(){attendanceModal.style.display="none";}
 
-historyTable.innerHTML="<tr><td colspan='5'>Loading...</td></tr>";
+/* DOWNLOAD */
+function openDownload(){downloadModal.style.display="flex";}
+function closeDownload(){downloadModal.style.display="none";}
 
-let today = new Date().toISOString().split("T")[0];
-
-let url = API_URL+"?type=history&date="+today;
-
-if(!isAdmin){
-url += "&user=" + encodeURIComponent(user);
-}
-
-fetch(url)
-.then(res=>res.json())
-.then(data=>{
-
-allData=data;
-
-/* FILTER */
-let filteredData = isAdmin ? data : data.filter(d => d.name === user);
-
-/* USER LIST */
-let users=[...new Set(data.map(d=>d.name))];
-document.getElementById("userSelect").innerHTML =
-users.map(u=>`<option value="${u}">${u}</option>`).join("");
-
-/* TABLE */
-let rows = filteredData.map(d=>`
-<tr>
-<td>${d.date}</td>
-<td>${d.name}</td>
-<td>${d.place}</td>
-<td>${d.lat?`<a href="https://maps.google.com?q=${d.lat},${d.lon}" target="_blank">📍</a>`:"-"}</td>
-<td style="${isAdmin ? '' : 'display:none'}">
-${isAdmin ? `<button onclick="openMap()">📡</button>` : ""}
-</td>
-</tr>
-`).join("");
-
-historyTable.innerHTML = rows;
-
-});
-}
-
-/* MAP */
-function openMap(){
-
-if(!isAdmin){
-alert("Access Denied");
-return;
-}
-
-document.getElementById("mapModal").style.display="flex";
-
-setTimeout(()=>{
-
-if(!map){
-map = L.map('map').setView([22.5,78.9],5);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-}
-
-loadUserRoute();
-
-},200);
-}
-
-/* ROUTE */
-function loadUserRoute(){
-
-let selected=document.getElementById("userSelect").value;
-
-if(marker) map.removeLayer(marker);
-if(polyline) map.removeLayer(polyline);
-
-let points = allData
-.filter(d=>d.name===selected && d.lat && d.lon)
-.map(d=>[d.lat,d.lon]);
-
-if(points.length){
-
-polyline = L.polyline(points,{color:'cyan'}).addTo(map);
-marker = L.marker(points[points.length-1]).addTo(map);
-
-map.fitBounds(polyline.getBounds());
-}
-}
-
-/* CLOSE MAP */
-function closeMap(){
-document.getElementById("mapModal").style.display="none";
-}
-
-/* CSV */
 function downloadCSV(){
-let url = API_URL+"?type=csv";
+let from=fromDate.value;
+let to=toDate.value;
+let url = API_URL+"?type=csv&from="+from+"&to="+to;
 
 if(!isAdmin){
-url += "&user=" + encodeURIComponent(user);
+url += "&user=" + user;
 }
 
 window.open(url);
 }
 
-/* LOGOUT */
-function logout(){
-if(confirm("Logout?")){
-localStorage.clear();
-window.location.href="login.html";
+/* LOAD */
+function loadData(){
+fetch(API_URL+"?type=history")
+.then(res=>res.json())
+.then(data=>{
+allData = data;
+
+let filtered = isAdmin
+? data
+: data.filter(d => d.name === user);
+
+renderCalendar(filtered);
+});
+}
+
+/* CALENDAR */
+function renderCalendar(data){
+
+calendarGrid.innerHTML="";
+
+let base=new Date(currentDate);
+
+let start = base.getDate()>=26
+? new Date(base.getFullYear(),base.getMonth(),26)
+: new Date(base.getFullYear(),base.getMonth()-1,26);
+
+let end=new Date(start.getFullYear(),start.getMonth()+1,25);
+
+monthLabel.innerText=start.toDateString()+" → "+end.toDateString();
+
+let temp=new Date(start);
+
+while(temp<=end){
+
+let full = temp.getFullYear() + "-" +
+String(temp.getMonth()+1).padStart(2,'0') + "-" +
+String(temp.getDate()).padStart(2,'0');
+
+let dayData = data.filter(d => 
+d.date === full && (isAdmin || d.name === user)
+);
+
+let div=document.createElement("div");
+
+let todayStr=new Date().toISOString().split("T")[0];
+
+div.className="day "+(dayData.length?"p":"a")+(full===todayStr?" today":"");
+
+div.innerHTML=`${temp.getDate()}<small>${temp.toLocaleDateString("en-IN",{weekday:'short'})}</small>`;
+
+div.onclick=()=>{
+engineerList.innerHTML = dayData.length
+let uniqueUsers = [...new Map(dayData.map(d => [d.name, d])).values()];
+
+engineerList.innerHTML = uniqueUsers.length
+? uniqueUsers.map(d=>`
+<div style="cursor:pointer; margin:5px; padding:8px; border-radius:10px; background:rgba(255,255,255,0.1);"
+onclick="openUser('${d.name}')">
+👷 ${d.name} <br>
+📍 <small>${d.place || "No Place"}</small>
+</div>
+`).join("")
+: "❌ No Attendance";
+}
+
+calendarGrid.appendChild(div);
+temp.setDate(temp.getDate()+1);
 }
 }
 
-/* INIT */
+function prevMonth(){currentDate.setMonth(currentDate.getMonth()-1);loadData();}
+function nextMonth(){currentDate.setMonth(currentDate.getMonth()+1);loadData();}
+
+/* USER */
+function openUser(name){
+
+mapModal.style.display="flex";
+
+if(!isAdmin && name !== user){
+alert("Access Denied");
+return;
+}
+
+let userData = allData.filter(d=>d.name===name);
+
+let uniqueDays=[...new Set(userData.map(d=>d.date))];
+let present=uniqueDays.length;
+
+let totalDays=30;
+let absent=totalDays-present;
+
+userTitle.innerText=name;
+userStats.innerHTML=`Present: ${present} | Absent: ${absent}`;
+
+setTimeout(()=>{
+
+if(!map){
+map=L.map('map').setView([22,78],5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+}
+
+if(marker) map.removeLayer(marker);
+if(polyline) map.removeLayer(polyline);
+
+routePoints=userData.filter(d=>d.lat).map(d=>[d.lat,d.lon]);
+
+if(routePoints.length){
+polyline=L.polyline(routePoints,{color:'cyan'}).addTo(map);
+marker=L.marker(routePoints[0]).addTo(map);
+map.fitBounds(polyline.getBounds());
+}
+
+},300);
+}
+
+/* PLAYBACK */
+function playRoute(){
+let i=0;
+let interval=setInterval(()=>{
+if(i>=routePoints.length){clearInterval(interval);return;}
+marker.setLatLng(routePoints[i]);
+map.panTo(routePoints[i]);
+i++;
+},800);
+}
+
+function closeMap(){mapModal.style.display="none";}
+
+function logout(){
+localStorage.clear();
+location.href="login.html";
+}
+
 loadData();
 
 </script>
-
 </body>
 </html>
