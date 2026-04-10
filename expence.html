@@ -408,7 +408,13 @@ grid-template-columns: 1fr;
   <button onclick="goDashboard()">⬅ Dashboard</button>
 </div>
 <div id="categoryTotals"></div>
+<div style="padding:10px;text-align:center;color:white;">
+<button onclick="prevMonth()">⬅</button>
+<span id="monthLabel"></span>
+<button onclick="nextMonth()">➡</button>
+</div>
 
+<div id="calendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:10px;"></div>
 
 <!-- Floating Button -->
 
@@ -449,19 +455,48 @@ grid-template-columns: 1fr;
 </div>
 
 <script>
-  let originalForm = "";
+let currentDate = new Date();
+let originalForm = "";
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxtEmieR7gcyBqlZoVsleYfKEuXMbIXOA027E1L7E41y6jhvKT_wAn5s8iM0QLEYaYLrg/exec";
 
-let allData = []; // ✅ FIX
+let allData = [];
 
+// ✅ DATE FIX
+function fixDate(d){
+  if(!d) return "";
+
+  let date = new Date(d);
+
+  if (isNaN(date)) {
+    if(typeof d === "string" && d.includes("/")){
+      let parts = d.split(" ")[0].split("/");
+      let day = parseInt(parts[0]);
+      let month = parseInt(parts[1]) - 1;
+      let year = parseInt(parts[2]);
+      date = new Date(year, month, day);
+    } else {
+      return "";
+    }
+  }
+
+  let y = date.getFullYear();
+  let m = String(date.getMonth()+1).padStart(2,'0');
+  let day = String(date.getDate()).padStart(2,'0');
+
+  return `${y}-${m}-${day}`;
+}
+
+// ✅ MODAL
 function openModal(){
-document.querySelector(".modal-box").innerHTML = originalForm; // ✅ form wapas aayega
+document.querySelector(".modal-box").innerHTML = originalForm;
 document.getElementById("modal").style.display="flex";
 }
 function closeModal(){
 document.getElementById("modal").style.display = "none";
 }
+
+// ✅ FILE TO BASE64
 function toBase64(file){
 return new Promise((resolve, reject)=>{
 let reader = new FileReader();
@@ -471,22 +506,72 @@ reader.onerror = error => reject(error);
 });
 }
 
-// ✅ FIXED preview
-function previewPhoto(){
-let file=photo.files[0];
-if(file){
-let reader=new FileReader();
-reader.onload=function(e){
-preview.src=e.target.result;
-preview.style.display="block";
-}
-reader.readAsDataURL(file);
-}
+// ✅ CALENDAR
+function renderCalendar(){
+let year = currentDate.getFullYear();
+let month = currentDate.getMonth();
+
+document.getElementById("monthLabel").innerText =
+currentDate.toLocaleString('default',{month:'long',year:'numeric'});
+
+let firstDay = new Date(year,month,1).getDay();
+let days = new Date(year,month+1,0).getDate();
+
+let html = "";
+
+for(let i=0;i<firstDay;i++){
+html += "<div></div>";
 }
 
-// ✅ LOAD TOTALS
+for(let d=1; d<=days; d++){
+
+let date = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+let found = allData.filter(x => fixDate(x.date) === date);
+let color = found.length ? "#22c55e" : "#ef4444";
+
+html += `
+<div onclick="showDay('${date}')" 
+style="padding:10px;text-align:center;border-radius:8px;
+background:${color};cursor:pointer;color:white;">
+${d}
+</div>`;
+}
+
+document.getElementById("calendar").innerHTML = html;
+}
+
+// ✅ SHOW DAY
+function showDay(date){
+let list = allData.filter(x => fixDate(x.date) === date);
+
+if(list.length === 0){
+alert("No expense on this day");
+return;
+}
+
+let total = 0;
+let html = `<h3>📅 ${date}</h3>`;
+
+list.forEach(x=>{
+total += Number(x.amount);
+
+html += `
+<div style="margin:10px 0;padding:10px;background:#222;border-radius:10px;">
+👤 ${x.name}<br>
+🏷 ${x.expenseType}<br>
+💰 ₹ ${x.amount}
+</div>`;
+});
+
+html += `<h3>Total: ₹ ${total}</h3>`;
+
+document.querySelector(".modal-box").innerHTML = html;
+document.getElementById("modal").style.display="flex";
+}
+
+// ✅ LOAD DATA (FINAL FIX 🔥)
 async function loadTotals(){
-
 let res = await fetch(WEB_APP_URL + "?type=get");
 allData = await res.json();
 
@@ -507,141 +592,135 @@ html+=`
 `;
 }
 
-document.getElementById("categoryTotals").innerHTML = html; // ✅ FIX
-
+document.getElementById("categoryTotals").innerHTML = html;
+}
+function prevMonth(){
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  renderCalendar();
 }
 
-// ✅ SHOW POPUP DATA
-function showData(type){
+function nextMonth(){
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  renderCalendar();
+}
+// ✅ CATEGORY POPUP
+function showDay(date){
+let list = allData.filter(x => fixDate(x.date) === date);
 
-let filtered = allData.filter(x=>x.expenseType===type);
+if(list.length === 0){
+alert("No expense on this day");
+return;
+}
 
-let html = `<h3>${type}</h3>`;
+let total = 0;
+let html = `<h3>📅 ${date}</h3>`;
 
-filtered.forEach(x=>{
-html+=`
-<div style="margin-top:10px;">
-<b>${x.name}</b><br>
-📅${x.date || "No Date"}<br>
-₹ ${x.amount}<br>
-<small>${x.details}</small>
-<hr>
-</div>
-`;
+list.forEach(x=>{
+total += Number(x.amount);
+
+html += `
+<div style="margin:10px 0;padding:10px;background:#222;border-radius:10px;">
+👤 ${x.name}<br>
+🏷 ${x.expenseType}<br>
+💰 ₹ ${x.amount}
+</div>`;
 });
 
-html+=`<button class="close" onclick="closeModal()">Close</button>`;
+// ✅ ADD CLOSE BUTTON 🔥
+html += `
+<h3>Total: ₹ ${total}</h3>
+<button class="close" onclick="closeModal()">Close</button>
+`;
 
 document.querySelector(".modal-box").innerHTML = html;
 document.getElementById("modal").style.display="flex";
 }
-
-// ✅ SUBMIT FIX
+// ✅ SUBMIT (FINAL FIX 🔥)
 async function submitExpense(){
 
 let btn = document.getElementById("submitBtn");
 
-// ✅ Multiple click block
+// 🔥 fresh elements every time
+let name = document.getElementById("name");
+let amount = document.getElementById("amount");
+let type = document.getElementById("type");
+let details = document.getElementById("details");
+let date = document.getElementById("date");
+let photo = document.getElementById("photo");
+let preview = document.getElementById("preview");
+
 if(btn.disabled) return;
 
-// ✅ Disable button
 btn.disabled = true;
 btn.innerHTML = "⏳ Saving...";
 
-// ✅ VALIDATION
-if(!document.getElementById("name").value || !document.getElementById("amount").value){
-alert("⚠️ Please fill all required fields");
+if(!name.value || !amount.value){
+alert("⚠️ Fill required fields");
 btn.disabled = false;
 btn.innerHTML = "Submit";
 return;
 }
 
-let file=photo.files[0];
-let base64="";
+let file = photo.files[0];
+let base64 = "";
+
 if(file && file.size > 200000){
-alert("⚠️ Image size too large (max 2mb)");
+alert("⚠️ Image too large");
 btn.disabled = false;
 btn.innerHTML = "Submit";
 return;
 }
 
 if(file){
-base64=await toBase64(file);
+base64 = await toBase64(file);
 }
 
 try{
-
 await fetch(WEB_APP_URL,{
 method:"POST",
 body:JSON.stringify({
-type:"expense",
-date: document.getElementById("date").value,
-name: document.getElementById("name").value,
-expenseType: document.getElementById("type").value,
-details: document.getElementById("details").value,
-amount: document.getElementById("amount").value,
+date: date.value,
+name: name.value,
+expenseType: type.value,
+details: details.value,
+amount: amount.value,
 photo:base64
 })
 });
 
-alert("✅ Expense Saved");
+alert("✅ Saved");
 
-// ✅ CLEAR FORM
-document.getElementById("date").value = "";
-document.getElementById("name").value = "";
-document.getElementById("type").value = "";
-document.getElementById("details").value = "";
-document.getElementById("amount").value = "";
-document.getElementById("photo").value = "";
-document.getElementById("preview").style.display = "none";
+date.value="";
+name.value="";
+type.value="";
+details.value="";
+amount.value="";
+photo.value="";
+preview.style.display="none";
 
 closeModal();
-loadTotals();
+await loadTotals();
+renderCalendar();
 
 }catch(err){
-alert("❌ Error saving data");
+alert("❌ Error");
 console.error(err);
 }
 
-// ✅ Enable button again
 btn.disabled = false;
 btn.innerHTML = "Submit";
 }
 
-// ✅ DOWNLOAD
-function downloadData(type){
-
-let filtered = allData.filter(x => x.expenseType === type);
-
-let csv = "Name,Type,Amount,Details\n";
-
-filtered.forEach(item=>{
-csv += `${item.name},${item.expenseType},${item.amount},${item.details}\n`;
-});
-
-let blob = new Blob([csv], { type: 'text/csv' });
-let link = document.createElement("a");
-
-link.href = URL.createObjectURL(blob);
-link.download = type + "_expenses.csv";
-link.click();
-
-}
-
-// ✅ NAVIGATION
-function goDashboard(){
-window.location.href="dashboard.html";
-}
+// ✅ INIT
 window.onload = function(){
 originalForm = document.querySelector(".modal-box").innerHTML;
+init();
+};
+
+async function init(){
+await loadTotals();
+renderCalendar();
 }
-
-// ✅ AUTO LOAD
-loadTotals();
-setInterval(loadTotals,3000);
-
-
 </script>
-
 </body>
 </html>
