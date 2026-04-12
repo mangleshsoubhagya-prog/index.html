@@ -9,157 +9,79 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-body{
-margin:0;
-font-family:Poppins;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:white;
-}
-
-/* NAV */
-.navbar{
-display:flex;
-justify-content:space-between;
-padding:15px;
-background:rgba(255,255,255,0.08);
-}
+body{margin:0;font-family:Poppins;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:white;}
+.navbar{display:flex;justify-content:space-between;padding:15px;background:rgba(255,255,255,0.08);}
+button{background:#ddf59d;color:#0509f3;border:none;padding:8px 15px;border-radius:25px;cursor:pointer;}
+.glass{background: rgba(255,255,255,0.08);backdrop-filter: blur(20px);border-radius:20px;padding:15px;margin:10px;}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.day{padding:12px;text-align:center;border-radius:12px;cursor:pointer;}
+.today{border:3px solid yellow;}
+.p{background:#08e613;}
+.a{background:#ff4b2b;}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;}
+.modal-box{background:#111;padding:20px;border-radius:15px;width:90%;max-width:500px;}
+input{width:100%;padding:10px;margin:5px;border-radius:10px;border:none;}
+#map{height:300px;}
 
 button{
 background:#ddf59d;
-color:rgb(5, 9, 243);
+color:#0509f3;
 border:none;
 padding:8px 15px;
 border-radius:25px;
 cursor:pointer;
-transition:0.3s;
+transition:all 0.3s ease;
 }
 
+/* 🔥 BUTTON HOVER */
 button:hover{
-background:#ff1e00;
+background:#ff4b2b;
+color:#fff;
 transform:scale(1.1);
 box-shadow:0 5px 15px rgba(255,75,43,0.5);
 }
-/* CARD */
-.glass{
-background: rgba(255,255,255,0.08);
-backdrop-filter: blur(20px);
-border-radius:20px;
-padding:15px;
-margin:10px;
-}
 
-/* CALENDAR */
-.calendar-grid{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:8px;
-}
-
+/* 🔥 CALENDAR DAY */
 .day{
 padding:12px;
 text-align:center;
 border-radius:12px;
 cursor:pointer;
-position:relative;
+transition:all 0.25s ease;
 background:rgba(255,255,255,0.08);
-transition:all 0.3s ease;
-overflow:hidden;
-}
-.logout-btn{
-background:linear-gradient(135deg,#ff4b2b,#ff416c);
-color:white;
-border:none;
-padding:8px 18px;
-border-radius:25px;
-cursor:pointer;
-font-weight:bold;
-transition:all 0.3s ease;
-box-shadow:0 5px 15px rgba(255,75,43,0.4);
 }
 
-.logout-btn:hover{
-transform:scale(1.1) rotate(-2deg);
-box-shadow:0 10px 25px rgba(255,75,43,0.7);
-}
-
-/* ✨ Hover Effect */
+/* HOVER EFFECT */
 .day:hover{
-transform:translateY(-6px) scale(1.05);
-box-shadow:0 10px 25px rgba(0,255,204,0.4);
+transform:translateY(-5px) scale(1.05);
+box-shadow:0 10px 20px rgba(0,255,204,0.4);
 }
 
-/* 💡 Glow Effect */
-.day::before{
-content:"";
-position:absolute;
-top:0;
-left:-100%;
-width:100%;
-height:100%;
-background:linear-gradient(120deg,transparent,rgba(0,255,204,0.4),transparent);
-transition:0.5s;
-}
-
-.day:hover::before{
-left:100%;
-}
-.p:hover{
-box-shadow:0 16px 28px rgba(0,255,204,0.6);
-}
-
-.a:hover{
-box-shadow:0 10px 25px rgba(255,75,43,0.6);
-}
+/* TODAY GLOW */
 .today{
-border:4px solid yellow;
-animation:glow 1.5s infinite alternate;
+border:3px solid yellow;
+box-shadow:0 0 15px yellow;
 }
 
-@keyframes glow{
-from{box-shadow:0 0 5px yellow;}
-to{box-shadow:0 0 20px yellow;}
-}
-.day{
-transition:all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
-}
-.today{border:4px solid yellow;}
-
-.p{background:#08e613;color:#fcf4f4;}
-.a{background:#ff4b2b;color:#fff;}
-
-.day small{
-display:block;
-font-size:10px;
+/* PRESENT / ABSENT COLORS */
+.p{
+background:#08e613;
+color:#000;
 }
 
-/* MODAL */
-.modal{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,0.7);
-justify-content:center;
-align-items:center;
+.a{
+background:#ff4b2b;
+color:#fff;
 }
 
-.modal-box{
-background:#111;
-padding:20px;
-border-radius:15px;
-width:90%;
-max-width:500px;
-}
-
-input{
-width:100%;
-padding:10px;
+/* 🔥 ENGINEER LIST HOVER */
+#engineerList div{
+padding:8px;
 margin:5px;
 border-radius:10px;
-border:none;
-}
-#engineerList div{
-transition:0.3s;
+background:rgba(255,255,255,0.1);
+cursor:pointer;
+transition:all 0.3s ease;
 }
 
 #engineerList div:hover{
@@ -169,7 +91,6 @@ transform:scale(1.05);
 box-shadow:0 5px 15px rgba(0,255,204,0.5);
 }
 
-#map{height:300px;}
 </style>
 </head>
 
@@ -179,185 +100,186 @@ box-shadow:0 5px 15px rgba(0,255,204,0.5);
 <h2>Bhavy Softech Solution</h2>
 <div>
 <span id="userName"></span>
-    <!-- HOME BUTTON -->
-<button onclick="goHome()" title="Home">🏠</button>
-
-    
 <button onclick="logout()">Logout</button>
 </div>
 </div>
 
 <div class="glass">
-<button class="btn" onclick="openAttendance()">📍 Mark Attendance</button>
-<button class="btn" onclick="openDownload()">📥 Download</button>
+<button onclick="openAttendance()">📍 Mark Attendance</button>
+<button onclick="openDownload()">📥 Download</button>
 </div>
 
-<!-- CALENDAR -->
 <div class="glass">
-<h3 style="text-align:center;">
-<button class="btn" onclick="prevMonth()">⬅</button>
+<h3>
+<button onclick="prevMonth()">⬅</button>
 <span id="monthLabel"></span>
-<button class="btn" onclick="nextMonth()">➡</button>
+<button onclick="nextMonth()">➡</button>
 </h3>
 
 <div id="calendarGrid" class="calendar-grid"></div>
 
-<div>
 <h3>👷 Engineers</h3>
 <div id="engineerList">Click any date...</div>
 </div>
-</div>
 
-<!-- ATTENDANCE MODAL -->
+<!-- Attendance -->
 <div id="attendanceModal" class="modal">
 <div class="modal-box">
-
-<h3>Mark Attendance</h3>
-<input id="manualPlace" placeholder="Enter Place" required>
+<input id="manualPlace" placeholder="Enter Place">
 <input id="autoLocation" readonly>
-
-<button class="btn" onclick="submitAttendance()">Submit</button>
-<button class="btn" onclick="closeAttendance()">Close</button>
-
+<button onclick="submitAttendance()">Submit</button>
+<button onclick="closeAttendance()">Close</button>
 </div>
 </div>
 
-<!-- DOWNLOAD MODAL -->
+<!-- Download -->
 <div id="downloadModal" class="modal">
 <div class="modal-box">
-
 <input type="date" id="fromDate">
 <input type="date" id="toDate">
-
-<button class="btn" onclick="downloadCSV()">Download</button>
-<button class="btn" onclick="closeDownload()">Close</button>
-
+<button onclick="downloadCSV()">Download</button>
+<button onclick="closeDownload()">Close</button>
 </div>
 </div>
 
 <!-- MAP -->
 <div id="mapModal" class="modal">
 <div class="modal-box">
-
 <h3 id="userTitle"></h3>
 <div id="userStats"></div>
-
 <div id="map"></div>
-
-<button class="btn" onclick="playRoute()">▶ Play</button>
-<button class="btn" onclick="closeMap()">Close</button>
-
+<button onclick="playRoute()">▶ Play</button>
+<button onclick="closeMap()">Close</button>
 </div>
 </div>
 
 <script>
-      function goHome(){
-  window.location.href = "dashboard.html";
-}
-    let role = (localStorage.getItem("role") || "user").toLowerCase();
-let isAdmin = role === "admin";
 
-const API_URL="https://script.google.com/macros/s/AKfycbxIoXdbgjTD_gvhtnqWBDUI0ShrSy7Je5_ezCRk_xx535NmHgpRzfFpi76VbtBXvLz-NA/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzJI9ql80XbnfGpk1fBl-BJ0FKnRZTM-2ZkqpSo4UnoeJ6YoNnjtR6B_Z_tCVRPnRr7FQ/exec";
+
 let user=localStorage.getItem("user");
+let role=(localStorage.getItem("role")||"user").toLowerCase();
+let isAdmin=role==="admin";
+
 if(!user) location.href="login.html";
 userName.innerText=user;
 
 let allData=[],map,marker,polyline,routePoints=[];
 let currentDate=new Date();
-let lat="",lon="";
+let trackingStarted=false;
+let lastLat=null,lastLon=null;
+let playInterval;
+
+/* 🔥 DATE FIX */
+function getLocalDate(date){
+let d=new Date(date);
+return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+}
 
 /* ATTENDANCE */
 function openAttendance(){
 attendanceModal.style.display="flex";
-
-/* 🔥 reset */
-manualPlace.value = "";
-autoLocation.value = "";
-
 navigator.geolocation.getCurrentPosition(pos=>{
-lat=pos.coords.latitude;
-lon=pos.coords.longitude;
-autoLocation.value=lat+","+lon;
+autoLocation.value=pos.coords.latitude+","+pos.coords.longitude;
 });
 }
 
 function submitAttendance(){
 
-let today = new Date().toISOString().split("T")[0];
+let today=getLocalDate(new Date());
 
-// fresh check (sirf current user ka data)
-let alreadyMarked = allData.filter(d => d.name === user && d.date === today);
+let already=allData.filter(d=>d.name===user && d.date===today && d.place!=="Live");
 
-if(alreadyMarked.length > 0){
-alert("❌ Attendance already Marked");
+if(already.length>0){
+alert("Already Marked");
+localStorage.setItem("tracking","on");
+startLiveTracking();
 return;
 }
 
-if(!manualPlace.value){
-alert("⚠️ Place enter karo");
-return;
-}
+navigator.geolocation.getCurrentPosition(pos=>{
 fetch(API_URL,{
 method:"POST",
 body:JSON.stringify({
+type:"attendance",
 name:user,
 place:manualPlace.value,
-lat,lon,
-date:today
+lat:pos.coords.latitude,
+lon:pos.coords.longitude
 })
-})
-.then(res => res.json())
-.then(res => {
-
-if(res.status === "exists"){
-alert("❌ Attendance already Marked");
-return;
-}
-
-alert("✅ Attendance Saved");
-
-/* 🔥 FORM RESET */
-manualPlace.value = "";
-autoLocation.value = "";
-lat = "";
-lon = "";
-
+}).then(()=>{
+alert("Saved");
+localStorage.setItem("tracking","on");
+startLiveTracking();
 closeAttendance();
 loadData();
-
+});
 });
 }
 
 function closeAttendance(){attendanceModal.style.display="none";}
 
-/* DOWNLOAD */
-function openDownload(){downloadModal.style.display="flex";}
-function closeDownload(){downloadModal.style.display="none";}
+/* LIVE */
+function startLiveTracking(){
+if(trackingStarted) return;
+if(localStorage.getItem("tracking")!=="on") return;
 
-function downloadCSV(){
-let from=fromDate.value;
-let to=toDate.value;
-let url = API_URL+"?type=csv&from="+from+"&to="+to;
+trackingStarted=true;
 
-if(!isAdmin){
-url += "&user=" + user;
+navigator.geolocation.watchPosition(pos=>{
+let lat=pos.coords.latitude;
+let lon=pos.coords.longitude;
+
+if(lastLat===null){
+lastLat=lat; lastLon=lon;
+sendLive(lat,lon);
+return;
 }
 
-window.open(url);
+let d=getDistance(lastLat,lastLon,lat,lon);
+
+if(d>0.02){
+lastLat=lat; lastLon=lon;
+sendLive(lat,lon);
+}
+});
+}
+
+function sendLive(lat,lon){
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+type:"live",
+name:user,
+lat:lat,
+lon:lon,
+place:"Live"
+})
+});
 }
 
 /* LOAD */
 function loadData(){
-fetch(API_URL+"?type=history")
-.then(res=>res.json())
-.then(data=>{
-allData = data;
 
-let filtered = isAdmin
-? data
-: data.filter(d => d.name === user);
+Promise.all([
+fetch(API_URL+"?type=history").then(r=>r.json()),
+fetch(API_URL+"?type=live").then(r=>r.json())
+])
+.then(([att,live])=>{
+
+allData=[...att,...live];
+
+let filtered=isAdmin?allData:allData.filter(d=>d.name===user);
 
 renderCalendar(filtered);
+
+let today=getLocalDate(new Date());
+
+if(att.some(d=>d.name===user && d.date===today)){
+localStorage.setItem("tracking","on");
+startLiveTracking();
+}
+
 });
 }
 
@@ -365,6 +287,13 @@ renderCalendar(filtered);
 function renderCalendar(data){
 
 calendarGrid.innerHTML="";
+
+// WEEK HEADER
+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{
+let div=document.createElement("div");
+div.innerHTML="<b>"+d+"</b>";
+calendarGrid.appendChild(div);
+});
 
 let base=new Date(currentDate);
 
@@ -380,65 +309,51 @@ let temp=new Date(start);
 
 while(temp<=end){
 
-let full = temp.getFullYear() + "-" +
-String(temp.getMonth()+1).padStart(2,'0') + "-" +
-String(temp.getDate()).padStart(2,'0');
+let full=getLocalDate(temp);
 
-let dayData = data.filter(d => 
-d.date === full && (isAdmin || d.name === user)
-);
+let dayData=data.filter(d=>d.date===full);
+let attendanceData=dayData.filter(d=>d.place!=="Live");
 
 let div=document.createElement("div");
 
-let todayStr=new Date().toISOString().split("T")[0];
+let todayStr=getLocalDate(new Date());
 
-div.className="day "+(dayData.length?"p":"a")+(full===todayStr?" today":"");
+div.className="day "+(attendanceData.length?"p":"a")+(full===todayStr?" today":"");
 
-div.innerHTML=`${temp.getDate()}<small>${temp.toLocaleDateString("en-IN",{weekday:'short'})}</small>`;
+div.innerHTML=`
+${temp.getDate()}
+<small>${temp.toLocaleDateString("en-IN",{weekday:'short'})}</small>
+`;
 
 div.onclick=()=>{
-engineerList.innerHTML = dayData.length
-let uniqueUsers = [...new Map(dayData.map(d => [d.name, d])).values()];
+let unique=[...new Map(dayData.map(d=>[d.name,d])).values()];
 
-engineerList.innerHTML = uniqueUsers.length
-? uniqueUsers.map(d=>`
-<div style="cursor:pointer; margin:5px; padding:8px; border-radius:10px; background:rgba(255,255,255,0.1);"
-onclick="openUser('${d.name}')">
-👷 ${d.name} <br>
+engineerList.innerHTML=unique.length
+? unique.map(d=>`
+<div onclick="openUser('${d.name}')">
+👷 ${d.name}<br>
 📍 <small>${d.place || "No Place"}</small>
 </div>
 `).join("")
-: "❌ No Attendance";
-}
+: "No Attendance";
+};
 
 calendarGrid.appendChild(div);
 temp.setDate(temp.getDate()+1);
 }
 }
 
-function prevMonth(){currentDate.setMonth(currentDate.getMonth()-1);loadData();}
-function nextMonth(){currentDate.setMonth(currentDate.getMonth()+1);loadData();}
-
-/* USER */
+/* MAP */
 function openUser(name){
 
 mapModal.style.display="flex";
+userTitle.innerText="👷 "+name;
 
-if(!isAdmin && name !== user){
-alert("Access Denied");
-return;
-}
+let userData=allData.filter(d=>d.name===name);
 
-let userData = allData.filter(d=>d.name===name);
-
-let uniqueDays=[...new Set(userData.map(d=>d.date))];
-let present=uniqueDays.length;
-
-let totalDays=30;
-let absent=totalDays-present;
-
-userTitle.innerText=name;
-userStats.innerHTML=`Present: ${present} | Absent: ${absent}`;
+routePoints=userData
+.filter(d=>d.place==="Live")
+.map(d=>[parseFloat(d.lat),parseFloat(d.lon)]);
 
 setTimeout(()=>{
 
@@ -450,12 +365,16 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 if(marker) map.removeLayer(marker);
 if(polyline) map.removeLayer(polyline);
 
-routePoints=userData.filter(d=>d.lat).map(d=>[d.lat,d.lon]);
-
 if(routePoints.length){
+
 polyline=L.polyline(routePoints,{color:'cyan'}).addTo(map);
 marker=L.marker(routePoints[0]).addTo(map);
 map.fitBounds(polyline.getBounds());
+
+userStats.innerHTML=`📏 Distance: ${calculateDistance()} KM`;
+
+}else{
+userStats.innerHTML="No Live Data";
 }
 
 },300);
@@ -464,16 +383,57 @@ map.fitBounds(polyline.getBounds());
 /* PLAYBACK */
 function playRoute(){
 let i=0;
-let interval=setInterval(()=>{
-if(i>=routePoints.length){clearInterval(interval);return;}
+clearInterval(playInterval);
+playInterval=setInterval(()=>{
+if(i>=routePoints.length){clearInterval(playInterval);return;}
 marker.setLatLng(routePoints[i]);
 map.panTo(routePoints[i]);
 i++;
-},800);
+},600);
 }
 
-function closeMap(){mapModal.style.display="none";}
+function closeMap(){
+mapModal.style.display="none";
+clearInterval(playInterval);
+}
 
+/* DISTANCE */
+function calculateDistance(){
+let total=0;
+for(let i=1;i<routePoints.length;i++){
+total+=getDistance(routePoints[i-1][0],routePoints[i-1][1],routePoints[i][0],routePoints[i][1]);
+}
+return total.toFixed(2);
+}
+
+function getDistance(lat1,lon1,lat2,lon2){
+let R=6371;
+let dLat=(lat2-lat1)*Math.PI/180;
+let dLon=(lon2-lon1)*Math.PI/180;
+let a=Math.sin(dLat/2)**2+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)**2;
+let c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+return R*c;
+}
+
+/* DOWNLOAD */
+function openDownload(){downloadModal.style.display="flex";}
+function closeDownload(){downloadModal.style.display="none";}
+function downloadCSV(){
+let from=fromDate.value;
+let to=toDate.value;
+let url=API_URL+"?type=csv&from="+from+"&to="+to;
+if(!isAdmin){url+="&user="+user;}
+window.open(url);
+}
+
+/* NAV */
+function prevMonth(){currentDate.setMonth(currentDate.getMonth()-1);loadData();}
+function nextMonth(){currentDate.setMonth(currentDate.getMonth()+1);loadData();}
+
+/* LOGOUT */
 function logout(){
 localStorage.clear();
 location.href="login.html";
