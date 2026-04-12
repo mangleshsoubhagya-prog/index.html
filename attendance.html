@@ -289,12 +289,6 @@ function renderCalendar(data){
 calendarGrid.innerHTML="";
 
 // WEEK HEADER
-["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{
-let div=document.createElement("div");
-div.innerHTML="<b>"+d+"</b>";
-calendarGrid.appendChild(div);
-});
-
 let base=new Date(currentDate);
 
 let start = base.getDate()>=26
