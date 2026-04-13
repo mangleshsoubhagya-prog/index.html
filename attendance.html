@@ -101,6 +101,8 @@ box-shadow:0 5px 15px rgba(0,255,204,0.5);
 <div>
 <span id="userName"></span>
 <button onclick="logout()">Logout</button>
+<button onclick="Dashboard()">Dashboard</button>
+
 </div>
 </div>
 
@@ -146,14 +148,29 @@ box-shadow:0 5px 15px rgba(0,255,204,0.5);
 <div id="mapModal" class="modal">
 <div class="modal-box">
 <h3 id="userTitle"></h3>
+
+<div>
+<button onclick="showAttendance()">📍 Attendance</button>
+<button onclick="showLive()">🛰 Live</button>
+</div>
+
 <div id="userStats"></div>
 <div id="map"></div>
+
 <button onclick="playRoute()">▶ Play</button>
 <button onclick="closeMap()">Close</button>
 </div>
 </div>
 
 <script>
+
+let selectedUserData = [];
+let map, marker, polyline, routePoints = [];
+let playInterval;
+
+function Dashboard(){
+  window.location="dashboard.html";
+}
 
 const API_URL="https://script.google.com/macros/s/AKfycbzJI9ql80XbnfGpk1fBl-BJ0FKnRZTM-2ZkqpSo4UnoeJ6YoNnjtR6B_Z_tCVRPnRr7FQ/exec";
 
@@ -164,13 +181,10 @@ let isAdmin=role==="admin";
 if(!user) location.href="login.html";
 userName.innerText=user;
 
-let allData=[],map,marker,polyline,routePoints=[];
-let currentDate=new Date();
-let trackingStarted=false;
-let lastLat=null,lastLon=null;
-let playInterval;
+let allData=[],currentDate=new Date();
+let trackingStarted=false,lastLat=null,lastLon=null;
 
-/* 🔥 DATE FIX */
+/* DATE */
 function getLocalDate(date){
 let d=new Date(date);
 return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
@@ -185,7 +199,6 @@ autoLocation.value=pos.coords.latitude+","+pos.coords.longitude;
 }
 
 function submitAttendance(){
-
 let today=getLocalDate(new Date());
 
 let already=allData.filter(d=>d.name===user && d.date===today && d.place!=="Live");
@@ -260,7 +273,6 @@ place:"Live"
 
 /* LOAD */
 function loadData(){
-
 Promise.all([
 fetch(API_URL+"?type=history").then(r=>r.json()),
 fetch(API_URL+"?type=live").then(r=>r.json())
@@ -270,7 +282,6 @@ fetch(API_URL+"?type=live").then(r=>r.json())
 allData=[...att,...live];
 
 let filtered=isAdmin?allData:allData.filter(d=>d.name===user);
-
 renderCalendar(filtered);
 
 let today=getLocalDate(new Date());
@@ -288,7 +299,6 @@ function renderCalendar(data){
 
 calendarGrid.innerHTML="";
 
-// WEEK HEADER
 let base=new Date(currentDate);
 
 let start = base.getDate()>=26
@@ -304,7 +314,6 @@ let temp=new Date(start);
 while(temp<=end){
 
 let full=getLocalDate(temp);
-
 let dayData=data.filter(d=>d.date===full);
 let attendanceData=dayData.filter(d=>d.place!=="Live");
 
@@ -320,7 +329,16 @@ ${temp.getDate()}
 `;
 
 div.onclick=()=>{
-let unique=[...new Map(dayData.map(d=>[d.name,d])).values()];
+
+let userMap={};
+
+dayData.forEach(d=>{
+if(d.place!=="Live"){
+userMap[d.name]=d;
+}
+});
+
+let unique=Object.values(userMap);
 
 engineerList.innerHTML=unique.length
 ? unique.map(d=>`
@@ -330,6 +348,7 @@ engineerList.innerHTML=unique.length
 </div>
 `).join("")
 : "No Attendance";
+
 };
 
 calendarGrid.appendChild(div);
@@ -343,21 +362,51 @@ function openUser(name){
 mapModal.style.display="flex";
 userTitle.innerText="👷 "+name;
 
-let userData=allData.filter(d=>d.name===name);
-
-routePoints=userData
-.filter(d=>d.place==="Live")
-.map(d=>[parseFloat(d.lat),parseFloat(d.lon)]);
+selectedUserData=allData.filter(d=>d.name===name);
 
 setTimeout(()=>{
-
 if(!map){
 map=L.map('map').setView([22,78],5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 }
+showAttendance();
+},300);
+
+}
+
+/* ATTENDANCE MAP */
+function showAttendance(){
 
 if(marker) map.removeLayer(marker);
 if(polyline) map.removeLayer(polyline);
+
+let attData=selectedUserData.filter(d=>d.place!=="Live");
+
+if(attData.length){
+
+let lat=parseFloat(attData[0].lat);
+let lon=parseFloat(attData[0].lon);
+
+marker=L.marker([lat,lon]).addTo(map);
+map.setView([lat,lon],13);
+
+userStats.innerHTML="📍 Attendance Location";
+
+}else{
+userStats.innerHTML="No Attendance Location";
+}
+
+}
+
+/* LIVE MAP */
+function showLive(){
+
+if(marker) map.removeLayer(marker);
+if(polyline) map.removeLayer(polyline);
+
+routePoints=selectedUserData
+.filter(d=>d.place==="Live")
+.map(d=>[parseFloat(d.lat),parseFloat(d.lon)]);
 
 if(routePoints.length){
 
@@ -371,7 +420,6 @@ userStats.innerHTML=`📏 Distance: ${calculateDistance()} KM`;
 userStats.innerHTML="No Live Data";
 }
 
-},300);
 }
 
 /* PLAYBACK */
@@ -384,11 +432,6 @@ marker.setLatLng(routePoints[i]);
 map.panTo(routePoints[i]);
 i++;
 },600);
-}
-
-function closeMap(){
-mapModal.style.display="none";
-clearInterval(playInterval);
 }
 
 /* DISTANCE */
@@ -431,6 +474,11 @@ function nextMonth(){currentDate.setMonth(currentDate.getMonth()+1);loadData();}
 function logout(){
 localStorage.clear();
 location.href="login.html";
+}
+
+function closeMap(){
+mapModal.style.display="none";
+clearInterval(playInterval);
 }
 
 loadData();
