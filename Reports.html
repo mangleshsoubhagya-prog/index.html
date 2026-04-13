@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Reports Download</title>
+<title>Reports Dashboard</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
@@ -23,31 +23,38 @@ padding:15px 25px;
 background:rgba(255,255,255,0.08);
 }
 
-.logout{
-background:#ff4b2b;
-padding:6px 12px;
+.btn{
+padding:10px 18px;
+border:none;
 border-radius:20px;
+background:linear-gradient(45deg,#00f5a0,#00d9f5);
 cursor:pointer;
-}
-
-.box{
-margin-top:50px;
+font-weight:bold;
+margin:5px;
 }
 
 input{
 padding:10px;
 border-radius:10px;
 border:none;
-margin:10px;
+margin:5px;
 }
 
-.btn{
-padding:12px 25px;
-border:none;
-border-radius:30px;
-background:linear-gradient(45deg,#00f5a0,#00d9f5);
-cursor:pointer;
-font-weight:bold;
+table{
+margin:auto;
+margin-top:20px;
+width:95%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid rgba(255,255,255,0.2);
+padding:8px;
+font-size:14px;
+}
+
+th{
+background:rgba(0,0,0,0.4);
 }
 
 </style>
@@ -56,64 +63,123 @@ font-weight:bold;
 <body>
 
 <div class="navbar">
-<h2>📊 Reports</h2>
+<h2>📊 Reports Dashboard</h2>
 <div>
 <span id="userName"></span>
-<span class="logout" onclick="logout()">Logout</span>
+<button class="btn" onclick="logout()">Logout</button>
 </div>
 </div>
 
-<div class="box">
-
-<h3>Select Date Range</h3>
-
-<input type="date" id="fromDate">
-<input type="date" id="toDate">
-
-<br>
-
-<button class="btn" onclick="downloadReport()">⬇ Download Report</button>
-
+<!-- FORM -->
+<div style="margin-top:20px;">
+<form onsubmit="loadData(event)">
+  <input type="date" id="fromDate" required>
+  <input type="date" id="toDate" required>
+  <button class="btn" type="submit">Get Report</button>
+</form>
 </div>
+
+<table>
+<thead>
+<tr id="tableHead"></tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbxIoXdbgjTD_gvhtnqWBDUI0ShrSy7Je5_ezCRk_xx535NmHgpRzfFpi76VbtBXvLz-NA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyfp_yowcA2JQurx1DR4SrfMwJHTNIvLShvB3OYveVXjfBJwcHuTYsKddvVMZAL8srf/exec";
 
-let user = localStorage.getItem("user") || "";
-let role = localStorage.getItem("role") || "user";
+let user = localStorage.getItem("user");
 
-document.getElementById("userName").innerText = user;
-
-/* LOGIN CHECK */
 if(!user){
 window.location.href="login.html";
 }
 
-/* DOWNLOAD */
-function downloadReport(){
+document.getElementById("userName").innerText = user;
+
+/* ================= LOAD DATA ================= */
+function loadData(e){
+e.preventDefault();
 
 let from = document.getElementById("fromDate").value;
 let to = document.getElementById("toDate").value;
 
-if(!from || !to){
-alert("Select both dates");
+document.getElementById("tableBody").innerHTML =
+"<tr><td>Loading...</td></tr>";
+
+let url = API_URL 
+  + "?type=report"
+  + "&from=" + from
+  + "&to=" + to
+  + "&user=" + encodeURIComponent(user);
+
+console.log("REQUEST URL:", url);
+
+/* 🔥 SAFE FETCH */
+fetch(url)
+.then(res => res.text())
+.then(data => {
+
+  console.log("RAW RESPONSE:", data);
+
+  try {
+    let json = JSON.parse(data);
+
+    if(!Array.isArray(json)){
+      throw new Error("Invalid JSON");
+    }
+
+    renderTable(json);
+
+  } catch(err){
+    console.log("PARSE ERROR:", err);
+    document.getElementById("tableBody").innerHTML =
+      "<tr><td>Server Error / Invalid Response</td></tr>";
+  }
+
+})
+.catch(err => {
+  console.log("NETWORK ERROR:", err);
+  document.getElementById("tableBody").innerHTML =
+    "<tr><td>Network Error</td></tr>";
+});
+
+}
+
+/* ================= TABLE ================= */
+function renderTable(data){
+
+if(!data || data.length === 0){
+document.getElementById("tableHead").innerHTML = "";
+document.getElementById("tableBody").innerHTML =
+"<tr><td>No Data Found</td></tr>";
 return;
 }
 
-let url = API_URL + "?type=report";
-url += "&from=" + from;
-url += "&to=" + to;
+/* HEADER */
+let head = "";
+Object.keys(data[0]).forEach(col=>{
+head += `<th>${col}</th>`;
+});
+document.getElementById("tableHead").innerHTML = head;
 
-/* USER FILTER */
-if(role.toLowerCase() !== "admin"){
-url += "&user=" + encodeURIComponent(user);
+/* BODY */
+let body = "";
+
+data.forEach(row=>{
+body += "<tr>";
+Object.values(row).forEach(val=>{
+body += `<td>${val ?? ""}</td>`;
+});
+body += "</tr>";
+});
+
+document.getElementById("tableBody").innerHTML = body;
+
 }
 
-window.open(url);
-}
-
-/* LOGOUT */
+/* ================= LOGOUT ================= */
 function logout(){
 localStorage.clear();
 window.location.href="login.html";
