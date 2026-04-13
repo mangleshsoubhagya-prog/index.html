@@ -327,8 +327,9 @@ div.innerHTML=`
 ${temp.getDate()}
 <small>${temp.toLocaleDateString("en-IN",{weekday:'short'})}</small>
 `;
-
 div.onclick=()=>{
+
+selectedDate = full; // 🔥 clicked date save
 
 let userMap={};
 
@@ -362,7 +363,9 @@ function openUser(name){
 mapModal.style.display="flex";
 userTitle.innerText="👷 "+name;
 
-selectedUserData=allData.filter(d=>d.name===name);
+selectedUserData = allData.filter(d => 
+  d.name === name && d.date === selectedDate
+);
 
 setTimeout(()=>{
 if(!map){
@@ -380,20 +383,22 @@ function showAttendance(){
 if(marker) map.removeLayer(marker);
 if(polyline) map.removeLayer(polyline);
 
-let attData=selectedUserData.filter(d=>d.place!=="Live");
+let attData = selectedUserData.filter(d => d.place !== "Live");
 
 if(attData.length){
 
-let lat=parseFloat(attData[0].lat);
-let lon=parseFloat(attData[0].lon);
+let latest = attData[attData.length - 1];
 
-marker=L.marker([lat,lon]).addTo(map);
+let lat = parseFloat(latest.lat);
+let lon = parseFloat(latest.lon);
+
+marker = L.marker([lat,lon]).addTo(map);
 map.setView([lat,lon],13);
 
-userStats.innerHTML="📍 Attendance Location";
+userStats.innerHTML = "📍 Selected Date Attendance";
 
 }else{
-userStats.innerHTML="No Attendance Location";
+userStats.innerHTML = "No Attendance for this Date";
 }
 
 }
@@ -404,20 +409,23 @@ function showLive(){
 if(marker) map.removeLayer(marker);
 if(polyline) map.removeLayer(polyline);
 
-routePoints=selectedUserData
-.filter(d=>d.place==="Live")
-.map(d=>[parseFloat(d.lat),parseFloat(d.lon)]);
+// 🔥 हमेशा latest live (date ignore)
+let name = userTitle.innerText.replace("👷 ","");
+
+routePoints = allData
+.filter(d => d.name === name && d.place === "Live")
+.map(d => [parseFloat(d.lat), parseFloat(d.lon)]);
 
 if(routePoints.length){
 
-polyline=L.polyline(routePoints,{color:'cyan'}).addTo(map);
-marker=L.marker(routePoints[0]).addTo(map);
+polyline = L.polyline(routePoints,{color:'cyan'}).addTo(map);
+marker = L.marker(routePoints[routePoints.length-1]).addTo(map); // 🔥 latest point
 map.fitBounds(polyline.getBounds());
 
-userStats.innerHTML=`📏 Distance: ${calculateDistance()} KM`;
+userStats.innerHTML = `📏 Distance: ${calculateDistance()} KM`;
 
 }else{
-userStats.innerHTML="No Live Data";
+userStats.innerHTML = "No Live Data";
 }
 
 }
