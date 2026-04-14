@@ -6,17 +6,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-
 *{box-sizing:border-box;}
-
 body{
 margin:0;
 font-family:Poppins;
 background:linear-gradient(135deg,#667eea,#764ba2);
 color:white;
 }
-
-/* Navbar */
 .navbar{
 display:flex;
 justify-content:space-between;
@@ -24,16 +20,6 @@ align-items:center;
 padding:15px;
 background:rgba(255,255,255,0.1);
 }
-
-.navbar button{
-padding:8px 15px;
-border:none;
-border-radius:10px;
-background:linear-gradient(135deg,#ff512f,#dd2476);
-cursor:pointer;
-}
-
-/* Download */
 .download-box{
 display:flex;
 gap:10px;
@@ -41,64 +27,30 @@ justify-content:center;
 padding:10px;
 flex-wrap:wrap;
 }
-
 .download-box input{
 padding:8px;
 border-radius:8px;
 border:none;
 }
-
-.download-box button{
-background:#00c9a7;
-}
-
-/* Calendar */
+.download-box button{background:#00c9a7;}
 #calendar{
 display:grid;
 grid-template-columns:repeat(7,1fr);
 gap:6px;
 padding:10px;
 }
-
 .day{
 padding:12px;
 text-align:center;
 border-radius:10px;
 cursor:pointer;
 transition:0.3s;
-position:relative;
-overflow:hidden;
 }
-
-/* 🔥 Hover Effect */
 .day:hover{
 transform:scale(1.15);
-box-shadow:0 0 15px #00ffcc, 0 0 30px rgba(0,255,204,0.5);
-z-index:10;
+box-shadow:0 0 15px #00ffcc;
 }
-
-/* 🔥 Glow Border Animation */
-.day::before{
-content:"";
-position:absolute;
-top:0;
-left:-100%;
-width:100%;
-height:100%;
-background:linear-gradient(120deg,transparent,#00ffcc,transparent);
-transition:0.5s;
-}
-
-.day:hover::before{
-left:100%;
-}
-
-/* 🔥 Smooth click feel */
-.day:active{
-transform:scale(0.95);
-box-shadow:0 0 8px #00ffcc;
-}
-/* FAB */
+.day:active{transform:scale(0.95);}
 .fab{
 position:fixed;
 bottom:30px;
@@ -113,8 +65,6 @@ align-items:center;
 justify-content:center;
 cursor:pointer;
 }
-
-/* Modal */
 .modal{
 display:none;
 position:fixed;
@@ -126,7 +76,6 @@ background:rgba(0,0,0,0.6);
 justify-content:center;
 align-items:center;
 }
-
 .modal-box{
 background:rgba(255,255,255,0.08);
 backdrop-filter:blur(15px);
@@ -134,24 +83,12 @@ padding:25px;
 border-radius:18px;
 width:95%;
 max-width:500px;
-color:white;
-box-shadow:0 10px 40px rgba(0,0,0,0.4);
-animation:popup 0.3s ease;
 }
-
-/* animation */
-@keyframes popup{
-from{transform:scale(0.7);opacity:0;}
-to{transform:scale(1);opacity:1;}
-}
-
-/* Form Grid */
 .form-grid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
 }
-
 .form-grid input,
 .form-grid select{
 width:100%;
@@ -161,146 +98,26 @@ border-radius:8px;
 background:#222;
 color:white;
 }
-
 .form-grid input[type="number"],
 .form-grid input[type="date"],
-.form-grid #indusid{
+.form-grid #indusid,
+.form-grid input[type="file"]{
 grid-column:span 2;
 }
-
-/* Buttons */
 button{
 padding:10px;
 border:none;
 border-radius:8px;
 cursor:pointer;
 }
-
 .submit{background:#00c9a7;}
 .close{background:red;}
-
+.submit:disabled{opacity:0.6;}
 .button-group{
 display:flex;
 gap:10px;
 margin-top:10px;
 }
-
-.button-group button{
-flex:1;
-}
-/* 📱 APP STYLE MOBILE UI */
-@media(max-width:600px){
-
-body{
-padding-bottom:80px; /* FAB ke liye space */
-}
-
-/* Navbar compact */
-.navbar{
-padding:10px;
-}
-
-.navbar h2{
-font-size:18px;
-}
-
-/* Download section stack */
-.download-box{
-flex-direction:column;
-gap:8px;
-}
-
-.download-box input,
-.download-box button{
-width:100%;
-}
-
-/* Month control */
-#monthLabel{
-font-size:16px;
-font-weight:600;
-}
-
-/* Calendar full screen grid */
-#calendar{
-grid-template-columns:repeat(7,1fr);
-gap:5px;
-padding:8px;
-}
-
-/* 🔥 Day UI like app tiles */
-.day{
-padding:14px 5px;
-font-size:14px;
-border-radius:12px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:600;
-}
-
-/* Hover disabled (mobile) but tap effect */
-.day:active{
-transform:scale(0.9);
-box-shadow:0 0 10px #00ffcc;
-}
-
-/* 🔥 Floating Button like mobile app */
-.fab{
-width:60px;
-height:60px;
-font-size:28px;
-right:15px;
-bottom:15px;
-border-radius:50%;
-box-shadow:0 6px 20px rgba(0,0,0,0.4);
-}
-
-/* Modal full screen feel */
-.modal-box{
-width:100%;
-height:90%;
-border-radius:20px 20px 0 0;
-position:absolute;
-bottom:0;
-animation:slideUp 0.3s ease;
-overflow-y:auto;
-}
-
-/* Slide animation */
-@keyframes slideUp{
-from{transform:translateY(100%);}
-to{transform:translateY(0);}
-}
-
-/* Form grid single column */
-.form-grid{
-grid-template-columns:1fr;
-}
-
-/* Inputs full width */
-.form-grid input,
-.form-grid select{
-font-size:16px;
-padding:12px;
-}
-
-/* Buttons sticky bottom */
-.button-group{
-position:sticky;
-bottom:0;
-background:#111;
-padding:10px;
-}
-
-/* Download button bigger */
-.download-box button{
-font-size:16px;
-padding:10px;
-}
-
-}
-
 </style>
 
 </head>
@@ -309,10 +126,8 @@ padding:10px;
 
 <div class="navbar">
 <h2>💼 Reports System</h2>
-<button onclick="goDashboard()">⬅ Dashboard</button>
 </div>
 
-<!-- Download -->
 <div class="download-box">
 <input type="date" id="fromDate">
 <input type="date" id="toDate">
@@ -327,14 +142,11 @@ padding:10px;
 
 <div id="calendar"></div>
 
-<!-- FAB -->
 <div class="fab" onclick="openModal()">+</div>
 
-<!-- Modal -->
 <div class="modal" id="modal">
 <div class="modal-box">
 
-<!-- FORM -->
 <div id="formSection">
 
 <h3>💸 Working Entry</h3>
@@ -351,6 +163,8 @@ padding:10px;
 
 <input id="indusid" placeholder="Indus ID">
 <input type="number" id="count" placeholder="wire Count">
+
+<input type="file" id="video" accept="video/*">
 </div>
 
 <div class="button-group">
@@ -360,7 +174,6 @@ padding:10px;
 
 </div>
 
-<!-- VIEW -->
 <div id="viewSection" style="display:none;"></div>
 
 </div>
@@ -372,76 +185,48 @@ const WEB_APP_URL="https://script.google.com/macros/s/AKfycbwG4Nk1c_PtjTF1mSqmOB
 
 let currentDate=new Date();
 let allData=[];
+let isSubmitting=false;
 
-// ✅ ROLE SYSTEM
-let currentUser=localStorage.getItem("user") || prompt("Enter Your Name");
-let role=localStorage.getItem("role") || prompt("Enter role (admin/user)");
-
+// USER
+let currentUser=localStorage.getItem("user") || prompt("Enter Name");
 localStorage.setItem("user",currentUser);
-localStorage.setItem("role",role);
 
-// DASHBOARD
-function goDashboard(){
-window.location.href="dashboard.html";
-}
-
-// MODAL
+// ✅ FIXED MODAL OPEN
 function openModal(){
 
-document.getElementById("formSection").style.display="block";
-document.getElementById("viewSection").style.display="none";
-
-// auto fill name
-document.getElementById("name").value=currentUser;
-
-// reset
-document.getElementById("date").value="";
-document.getElementById("type").value="";
-document.getElementById("indusid").value="";
-document.getElementById("count").value="";
-
 document.getElementById("modal").style.display="flex";
+
+// show form
+document.getElementById("formSection").style.display="block";
+
+// hide view
+document.getElementById("viewSection").style.display="none";
+document.getElementById("viewSection").innerHTML="";
+
+// auto fill
+document.getElementById("name").value=currentUser;
+document.getElementById("date").value = fixDate(new Date());
 }
 
+// ✅ FIXED CLOSE
 function closeModal(){
 document.getElementById("modal").style.display="none";
+
+// reset UI
+document.getElementById("formSection").style.display="block";
+document.getElementById("viewSection").style.display="none";
 }
 
-// DOWNLOAD
-function downloadData(){
-let from=document.getElementById("fromDate").value;
-let to=document.getElementById("toDate").value;
-
-window.open(WEB_APP_URL+"?type=download&from="+from+"&to="+to);
-}
-
-// ✅ DATE FIX (IMPORTANT)
+// DATE FIX
 function fixDate(d){
 if(!d) return "";
 let date=new Date(d);
-
-// timezone fix 🔥
-date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-
+date.setMinutes(date.getMinutes()-date.getTimezoneOffset());
 return date.toISOString().split("T")[0];
-}
-
-// ✅ FILTER DATA
-function getFilteredData(){
-
-if(role==="admin"){
-return allData;
-}
-
-// user only own data
-return allData.filter(x=>x.name===currentUser);
 }
 
 // CALENDAR
 function renderCalendar(){
-
-let data=getFilteredData();
-
 let year=currentDate.getFullYear();
 let month=currentDate.getMonth();
 
@@ -458,13 +243,11 @@ for(let i=0;i<firstDay;i++) html+="<div></div>";
 for(let d=1;d<=days;d++){
 
 let date=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-// ✅ FIXED MATCH
-let found=data.filter(x=>fixDate(x.date)===date);
+let found=allData.filter(x=>fixDate(x.date)===date);
 
 html+=`
 <div class="day" onclick="showDay('${date}')"
-style="background:${found.length ? '#22c55e' : '#ef4444'}">
+style="background:${found.length?'#22c55e':'#ef4444'}">
 ${d}
 </div>`;
 }
@@ -472,21 +255,19 @@ ${d}
 document.getElementById("calendar").innerHTML=html;
 }
 
-// MONTH
-function prevMonth(){
-currentDate.setMonth(currentDate.getMonth()-1);
-renderCalendar();
+// BASE64
+function toBase64(file){
+return new Promise((resolve)=>{
+let reader=new FileReader();
+reader.readAsDataURL(file);
+reader.onload=()=>resolve(reader.result);
+});
 }
 
-function nextMonth(){
-currentDate.setMonth(currentDate.getMonth()+1);
-renderCalendar();
-}
-
-// SHOW DATA
+// ✅ VIEW DATA FIXED
 function showDay(date){
 
-let list=getFilteredData().filter(x=>fixDate(x.date)===date);
+let list=allData.filter(x=>fixDate(x.date)===date);
 
 if(list.length==0){
 alert("No data");
@@ -507,7 +288,8 @@ html+=`
 👤 ${x.name}<br>
 🏷 ${x.indusid}<br>
 📊 ${x.workType}<br>
-🔢 ${x.count}
+🔢 ${x.count}<br>
+🎥 ${x.videoUrl ? `<a href="${x.videoUrl}" target="_blank">View Video</a>` : 'No Video'}
 </div>`;
 });
 
@@ -515,25 +297,43 @@ html+=`<h3>Total: ${total}</h3>
 <button class="close" onclick="closeModal()">Close</button>`;
 
 document.getElementById("viewSection").innerHTML=html;
-
 document.getElementById("modal").style.display="flex";
 }
 
 // SUBMIT
 async function submitWorking(){
 
+if(isSubmitting) return;
+
+let btn=document.querySelector(".submit");
+isSubmitting=true;
+btn.innerText="Uploading...";
+btn.disabled=true;
+
+try{
+
+let file=document.getElementById("video").files[0];
+
+let base64="", mimeType="";
+
+if(file){
+if(file.size>10*1024*1024){
+alert("Max 10MB");
+return;
+}
+base64=await toBase64(file);
+mimeType=file.type;
+}
+
 let data={
-name:currentUser, // 🔥 force user name
+name:currentUser,
 count:document.getElementById("count").value,
 workType:document.getElementById("type").value,
 indusid:document.getElementById("indusid").value,
-date:document.getElementById("date").value
+date:document.getElementById("date").value,
+video:base64,
+mimeType:mimeType
 };
-
-if(!data.name || !data.count){
-alert("Fill required fields");
-return;
-}
 
 await fetch(WEB_APP_URL,{
 method:"POST",
@@ -541,9 +341,17 @@ body:JSON.stringify(data)
 });
 
 alert("Saved ✅");
-
 closeModal();
 loadData();
+
+}catch(e){
+console.log(e);
+alert("Error ❌");
+}
+
+isSubmitting=false;
+btn.innerText="Submit";
+btn.disabled=false;
 }
 
 // LOAD
@@ -553,9 +361,12 @@ allData=await res.json();
 renderCalendar();
 }
 
-// INIT
+function prevMonth(){currentDate.setMonth(currentDate.getMonth()-1);renderCalendar();}
+function nextMonth(){currentDate.setMonth(currentDate.getMonth()+1);renderCalendar();}
+
 loadData();
 
 </script>
+
 </body>
 </html>
