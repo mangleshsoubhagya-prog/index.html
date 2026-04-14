@@ -1,191 +1,561 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Reports Dashboard</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+
+*{box-sizing:border-box;}
 
 body{
 margin:0;
 font-family:Poppins;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+background:linear-gradient(135deg,#667eea,#764ba2);
 color:white;
-text-align:center;
 }
 
+/* Navbar */
 .navbar{
 display:flex;
 justify-content:space-between;
-padding:15px 25px;
-background:rgba(255,255,255,0.08);
+align-items:center;
+padding:15px;
+background:rgba(255,255,255,0.1);
 }
 
-.btn{
-padding:10px 18px;
+.navbar button{
+padding:8px 15px;
 border:none;
-border-radius:20px;
-background:linear-gradient(45deg,#00f5a0,#00d9f5);
-cursor:pointer;
-font-weight:bold;
-margin:5px;
-}
-
-input{
-padding:10px;
 border-radius:10px;
-border:none;
-margin:5px;
+background:linear-gradient(135deg,#ff512f,#dd2476);
+cursor:pointer;
 }
 
-table{
-margin:auto;
-margin-top:20px;
-width:95%;
-border-collapse:collapse;
+/* Download */
+.download-box{
+display:flex;
+gap:10px;
+justify-content:center;
+padding:10px;
+flex-wrap:wrap;
 }
 
-th,td{
-border:1px solid rgba(255,255,255,0.2);
+.download-box input{
 padding:8px;
-font-size:14px;
+border-radius:8px;
+border:none;
 }
 
-th{
-background:rgba(0,0,0,0.4);
+.download-box button{
+background:#00c9a7;
+}
+
+/* Calendar */
+#calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+padding:10px;
+}
+
+.day{
+padding:12px;
+text-align:center;
+border-radius:10px;
+cursor:pointer;
+transition:0.3s;
+position:relative;
+overflow:hidden;
+}
+
+/* 🔥 Hover Effect */
+.day:hover{
+transform:scale(1.15);
+box-shadow:0 0 15px #00ffcc, 0 0 30px rgba(0,255,204,0.5);
+z-index:10;
+}
+
+/* 🔥 Glow Border Animation */
+.day::before{
+content:"";
+position:absolute;
+top:0;
+left:-100%;
+width:100%;
+height:100%;
+background:linear-gradient(120deg,transparent,#00ffcc,transparent);
+transition:0.5s;
+}
+
+.day:hover::before{
+left:100%;
+}
+
+/* 🔥 Smooth click feel */
+.day:active{
+transform:scale(0.95);
+box-shadow:0 0 8px #00ffcc;
+}
+/* FAB */
+.fab{
+position:fixed;
+bottom:30px;
+right:30px;
+width:70px;
+height:70px;
+border-radius:50%;
+background:#0072ff;
+font-size:35px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+
+/* Modal */
+.modal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
+}
+
+.modal-box{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+padding:25px;
+border-radius:18px;
+width:95%;
+max-width:500px;
+color:white;
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
+animation:popup 0.3s ease;
+}
+
+/* animation */
+@keyframes popup{
+from{transform:scale(0.7);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+/* Form Grid */
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.form-grid input,
+.form-grid select{
+width:100%;
+padding:10px;
+border:none;
+border-radius:8px;
+background:#222;
+color:white;
+}
+
+.form-grid input[type="number"],
+.form-grid input[type="date"],
+.form-grid #indusid{
+grid-column:span 2;
+}
+
+/* Buttons */
+button{
+padding:10px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.submit{background:#00c9a7;}
+.close{background:red;}
+
+.button-group{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.button-group button{
+flex:1;
+}
+/* 📱 APP STYLE MOBILE UI */
+@media(max-width:600px){
+
+body{
+padding-bottom:80px; /* FAB ke liye space */
+}
+
+/* Navbar compact */
+.navbar{
+padding:10px;
+}
+
+.navbar h2{
+font-size:18px;
+}
+
+/* Download section stack */
+.download-box{
+flex-direction:column;
+gap:8px;
+}
+
+.download-box input,
+.download-box button{
+width:100%;
+}
+
+/* Month control */
+#monthLabel{
+font-size:16px;
+font-weight:600;
+}
+
+/* Calendar full screen grid */
+#calendar{
+grid-template-columns:repeat(7,1fr);
+gap:5px;
+padding:8px;
+}
+
+/* 🔥 Day UI like app tiles */
+.day{
+padding:14px 5px;
+font-size:14px;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:600;
+}
+
+/* Hover disabled (mobile) but tap effect */
+.day:active{
+transform:scale(0.9);
+box-shadow:0 0 10px #00ffcc;
+}
+
+/* 🔥 Floating Button like mobile app */
+.fab{
+width:60px;
+height:60px;
+font-size:28px;
+right:15px;
+bottom:15px;
+border-radius:50%;
+box-shadow:0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* Modal full screen feel */
+.modal-box{
+width:100%;
+height:90%;
+border-radius:20px 20px 0 0;
+position:absolute;
+bottom:0;
+animation:slideUp 0.3s ease;
+overflow-y:auto;
+}
+
+/* Slide animation */
+@keyframes slideUp{
+from{transform:translateY(100%);}
+to{transform:translateY(0);}
+}
+
+/* Form grid single column */
+.form-grid{
+grid-template-columns:1fr;
+}
+
+/* Inputs full width */
+.form-grid input,
+.form-grid select{
+font-size:16px;
+padding:12px;
+}
+
+/* Buttons sticky bottom */
+.button-group{
+position:sticky;
+bottom:0;
+background:#111;
+padding:10px;
+}
+
+/* Download button bigger */
+.download-box button{
+font-size:16px;
+padding:10px;
+}
+
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="navbar">
-<h2>📊 Reports Dashboard</h2>
-<div>
-<span id="userName"></span>
-<button class="btn" onclick="logout()">Logout</button>
+<h2>💼 Reports System</h2>
+<button onclick="goDashboard()">⬅ Dashboard</button>
 </div>
+
+<!-- Download -->
+<div class="download-box">
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+<button onclick="downloadData()">⬇ Download</button>
 </div>
+
+<div style="text-align:center;">
+<button onclick="prevMonth()">⬅</button>
+<span id="monthLabel"></span>
+<button onclick="nextMonth()">➡</button>
+</div>
+
+<div id="calendar"></div>
+
+<!-- FAB -->
+<div class="fab" onclick="openModal()">+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+<div class="modal-box">
 
 <!-- FORM -->
-<div style="margin-top:20px;">
-<form onsubmit="loadData(event)">
-  <input type="date" id="fromDate" required>
-  <input type="date" id="toDate" required>
-  <button class="btn" type="submit">Get Report</button>
-</form>
+<div id="formSection">
+
+<h3>💸 Working Entry</h3>
+
+<div class="form-grid">
+<input type="date" id="date">
+<input id="name" placeholder="Engineer Name">
+
+<select id="type">
+<option value="">Select Type</option>
+<option>New Installation</option>
+<option>Rectification</option>
+</select>
+
+<input id="indusid" placeholder="Indus ID">
+<input type="number" id="count" placeholder="wire Count">
 </div>
 
-<table>
-<thead>
-<tr id="tableHead"></tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
+<div class="button-group">
+<button class="submit" onclick="submitWorking()">Submit</button>
+<button class="close" onclick="closeModal()">Close</button>
+</div>
+
+</div>
+
+<!-- VIEW -->
+<div id="viewSection" style="display:none;"></div>
+
+</div>
+</div>
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyfp_yowcA2JQurx1DR4SrfMwJHTNIvLShvB3OYveVXjfBJwcHuTYsKddvVMZAL8srf/exec";
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbwG4Nk1c_PtjTF1mSqmOBBfmip0EUHrSny16OJQO6A9fuNJcMKh-03R8BPXfZn25QY/exec";
 
-let user = localStorage.getItem("user");
+let currentDate=new Date();
+let allData=[];
 
-if(!user){
-window.location.href="login.html";
+// ✅ ROLE SYSTEM
+let currentUser=localStorage.getItem("user") || prompt("Enter Your Name");
+let role=localStorage.getItem("role") || prompt("Enter role (admin/user)");
+
+localStorage.setItem("user",currentUser);
+localStorage.setItem("role",role);
+
+// DASHBOARD
+function goDashboard(){
+window.location.href="dashboard.html";
 }
 
-document.getElementById("userName").innerText = user;
+// MODAL
+function openModal(){
 
-/* ================= LOAD DATA ================= */
-function loadData(e){
-e.preventDefault();
+document.getElementById("formSection").style.display="block";
+document.getElementById("viewSection").style.display="none";
 
-let from = document.getElementById("fromDate").value;
-let to = document.getElementById("toDate").value;
+// auto fill name
+document.getElementById("name").value=currentUser;
 
-document.getElementById("tableBody").innerHTML =
-"<tr><td>Loading...</td></tr>";
+// reset
+document.getElementById("date").value="";
+document.getElementById("type").value="";
+document.getElementById("indusid").value="";
+document.getElementById("count").value="";
 
-let url = API_URL 
-  + "?type=report"
-  + "&from=" + from
-  + "&to=" + to
-  + "&user=" + encodeURIComponent(user);
-
-console.log("REQUEST URL:", url);
-
-/* 🔥 SAFE FETCH */
-fetch(url)
-.then(res => res.text())
-.then(data => {
-
-  console.log("RAW RESPONSE:", data);
-
-  try {
-    let json = JSON.parse(data);
-
-    if(!Array.isArray(json)){
-      throw new Error("Invalid JSON");
-    }
-
-    renderTable(json);
-
-  } catch(err){
-    console.log("PARSE ERROR:", err);
-    document.getElementById("tableBody").innerHTML =
-      "<tr><td>Server Error / Invalid Response</td></tr>";
-  }
-
-})
-.catch(err => {
-  console.log("NETWORK ERROR:", err);
-  document.getElementById("tableBody").innerHTML =
-    "<tr><td>Network Error</td></tr>";
-});
-
+document.getElementById("modal").style.display="flex";
 }
 
-/* ================= TABLE ================= */
-function renderTable(data){
+function closeModal(){
+document.getElementById("modal").style.display="none";
+}
 
-if(!data || data.length === 0){
-document.getElementById("tableHead").innerHTML = "";
-document.getElementById("tableBody").innerHTML =
-"<tr><td>No Data Found</td></tr>";
+// DOWNLOAD
+function downloadData(){
+let from=document.getElementById("fromDate").value;
+let to=document.getElementById("toDate").value;
+
+window.open(WEB_APP_URL+"?type=download&from="+from+"&to="+to);
+}
+
+// ✅ DATE FIX (IMPORTANT)
+function fixDate(d){
+if(!d) return "";
+let date=new Date(d);
+
+// timezone fix 🔥
+date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+
+return date.toISOString().split("T")[0];
+}
+
+// ✅ FILTER DATA
+function getFilteredData(){
+
+if(role==="admin"){
+return allData;
+}
+
+// user only own data
+return allData.filter(x=>x.name===currentUser);
+}
+
+// CALENDAR
+function renderCalendar(){
+
+let data=getFilteredData();
+
+let year=currentDate.getFullYear();
+let month=currentDate.getMonth();
+
+document.getElementById("monthLabel").innerText=
+currentDate.toLocaleString('default',{month:'long',year:'numeric'});
+
+let firstDay=new Date(year,month,1).getDay();
+let days=new Date(year,month+1,0).getDate();
+
+let html="";
+
+for(let i=0;i<firstDay;i++) html+="<div></div>";
+
+for(let d=1;d<=days;d++){
+
+let date=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+// ✅ FIXED MATCH
+let found=data.filter(x=>fixDate(x.date)===date);
+
+html+=`
+<div class="day" onclick="showDay('${date}')"
+style="background:${found.length ? '#22c55e' : '#ef4444'}">
+${d}
+</div>`;
+}
+
+document.getElementById("calendar").innerHTML=html;
+}
+
+// MONTH
+function prevMonth(){
+currentDate.setMonth(currentDate.getMonth()-1);
+renderCalendar();
+}
+
+function nextMonth(){
+currentDate.setMonth(currentDate.getMonth()+1);
+renderCalendar();
+}
+
+// SHOW DATA
+function showDay(date){
+
+let list=getFilteredData().filter(x=>fixDate(x.date)===date);
+
+if(list.length==0){
+alert("No data");
 return;
 }
 
-/* HEADER */
-let head = "";
-Object.keys(data[0]).forEach(col=>{
-head += `<th>${col}</th>`;
+document.getElementById("formSection").style.display="none";
+document.getElementById("viewSection").style.display="block";
+
+let html=`<h3>${date}</h3>`;
+let total=0;
+
+list.forEach(x=>{
+total+=Number(x.count);
+
+html+=`
+<div style="background:#222;padding:10px;margin:5px;border-radius:8px;">
+👤 ${x.name}<br>
+🏷 ${x.indusid}<br>
+📊 ${x.workType}<br>
+🔢 ${x.count}
+</div>`;
 });
-document.getElementById("tableHead").innerHTML = head;
 
-/* BODY */
-let body = "";
+html+=`<h3>Total: ${total}</h3>
+<button class="close" onclick="closeModal()">Close</button>`;
 
-data.forEach(row=>{
-body += "<tr>";
-Object.values(row).forEach(val=>{
-body += `<td>${val ?? ""}</td>`;
-});
-body += "</tr>";
-});
+document.getElementById("viewSection").innerHTML=html;
 
-document.getElementById("tableBody").innerHTML = body;
-
+document.getElementById("modal").style.display="flex";
 }
 
-/* ================= LOGOUT ================= */
-function logout(){
-localStorage.clear();
-window.location.href="login.html";
+// SUBMIT
+async function submitWorking(){
+
+let data={
+name:currentUser, // 🔥 force user name
+count:document.getElementById("count").value,
+workType:document.getElementById("type").value,
+indusid:document.getElementById("indusid").value,
+date:document.getElementById("date").value
+};
+
+if(!data.name || !data.count){
+alert("Fill required fields");
+return;
 }
+
+await fetch(WEB_APP_URL,{
+method:"POST",
+body:JSON.stringify(data)
+});
+
+alert("Saved ✅");
+
+closeModal();
+loadData();
+}
+
+// LOAD
+async function loadData(){
+let res=await fetch(WEB_APP_URL+"?type=get");
+allData=await res.json();
+renderCalendar();
+}
+
+// INIT
+loadData();
 
 </script>
-
 </body>
 </html>
