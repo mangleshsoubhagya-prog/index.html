@@ -15,24 +15,10 @@ color:white;
 }
 .navbar{
 display:flex;
-justify-content:space-between;
-align-items:center;
+justify-content:center;
 padding:15px;
 background:rgba(255,255,255,0.1);
 }
-.download-box{
-display:flex;
-gap:10px;
-justify-content:center;
-padding:10px;
-flex-wrap:wrap;
-}
-.download-box input{
-padding:8px;
-border-radius:8px;
-border:none;
-}
-.download-box button{background:#00c9a7;}
 #calendar{
 display:grid;
 grid-template-columns:repeat(7,1fr);
@@ -42,15 +28,29 @@ padding:10px;
 .day{
 padding:12px;
 text-align:center;
-border-radius:10px;
+border-radius:12px;
 cursor:pointer;
 transition:0.3s;
+font-weight:600;
 }
+
+/* 🔴 No Data */
+.day[style*="#ef4444"]{
+background:linear-gradient(135deg,#ebe981,#dae66f);
+color:white;
+}
+
+/* 🟢 Has Data */
+.day[style*="#22c55e"]{
+background:linear-gradient(135deg,#22c55e,#15803d);
+color:white;
+}
+
+/* Hover effect */
 .day:hover{
 transform:scale(1.15);
-box-shadow:0 0 15px #00ffcc;
+box-shadow:0 0 15px rgba(0,255,204,0.8);
 }
-.day:active{transform:scale(0.95);}
 .fab{
 position:fixed;
 bottom:30px;
@@ -79,8 +79,8 @@ align-items:center;
 .modal-box{
 background:rgba(255,255,255,0.08);
 backdrop-filter:blur(15px);
-padding:25px;
-border-radius:18px;
+padding:20px;
+border-radius:15px;
 width:95%;
 max-width:500px;
 }
@@ -89,19 +89,16 @@ display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
 }
-.form-grid input,
-.form-grid select{
-width:100%;
+input,select{
 padding:10px;
 border:none;
 border-radius:8px;
 background:#222;
 color:white;
 }
-.form-grid input[type="number"],
-.form-grid input[type="date"],
-.form-grid #indusid,
-.form-grid input[type="file"]{
+input[type="date"],
+#indusid,
+input[type="file"]{
 grid-column:span 2;
 }
 button{
@@ -110,13 +107,20 @@ border:none;
 border-radius:8px;
 cursor:pointer;
 }
-.submit{background:#00c9a7;}
+.submit{background:#87f10d;}
 .close{background:red;}
-.submit:disabled{opacity:0.6;}
 .button-group{
 display:flex;
 gap:10px;
 margin-top:10px;
+}
+#viewSection{
+background:#20db58;
+padding:10px;
+border-radius:10px;
+max-height:250px;
+overflow:auto;
+margin-bottom:10px;
 }
 </style>
 
@@ -126,9 +130,22 @@ margin-top:10px;
 
 <div class="navbar">
 <h2>💼 Reports System</h2>
-</div>
 
-<div class="download-box">
+<button onclick="goDashboard()" 
+style="
+margin-left:20px;
+padding:8px 15px;
+border-radius:8px;
+border:none;
+background:#22c55e;
+color:white;
+cursor:pointer;
+">
+🏠 Dashboard
+</button>
+
+</div>
+<div style="text-align:center;margin:10px;">
 <input type="date" id="fromDate">
 <input type="date" id="toDate">
 <button onclick="downloadData()">⬇ Download</button>
@@ -147,9 +164,10 @@ margin-top:10px;
 <div class="modal" id="modal">
 <div class="modal-box">
 
-<div id="formSection">
+<div id="viewSection" style="display:none;"></div>
 
-<h3>💸 Working Entry</h3>
+<div id="formSection">
+<h3>💸 Entry</h3>
 
 <div class="form-grid">
 <input type="date" id="date">
@@ -162,24 +180,29 @@ margin-top:10px;
 </select>
 
 <input id="indusid" placeholder="Indus ID">
-<input type="number" id="count" placeholder="wire Count">
+<input type="number" id="count" placeholder="Wire Count">
+<input type="number" id="sensor" placeholder="Sensor Number">
 
-<input type="file" id="video" accept="video/*">
+<input type="file" id="photo" accept="image/*" onchange="handlePhoto()">
+<div id="uploadStatus" style="text-align:center;margin-top:5px;"></div>
 </div>
 
 <div class="button-group">
-<button class="submit" onclick="submitWorking()">Submit</button>
+<button class="submit" id="submitBtn" onclick="submitWorking()">Submit</button>
 <button class="close" onclick="closeModal()">Close</button>
 </div>
 
 </div>
 
-<div id="viewSection" style="display:none;"></div>
-
 </div>
 </div>
 
 <script>
+    function goDashboard(){
+window.location.href = "dashboard.html"; // 👈 अपना dashboard page name डालो
+}
+    let userRole = localStorage.getItem("role") || "";
+let isAdmin = userRole === "admin";
 
 const WEB_APP_URL="https://script.google.com/macros/s/AKfycbwG4Nk1c_PtjTF1mSqmOBBfmip0EUHrSny16OJQO6A9fuNJcMKh-03R8BPXfZn25QY/exec";
 
@@ -187,45 +210,38 @@ let currentDate=new Date();
 let allData=[];
 let isSubmitting=false;
 
-// USER
 let currentUser=localStorage.getItem("user") || prompt("Enter Name");
 localStorage.setItem("user",currentUser);
 
-// ✅ FIXED MODAL OPEN
-function openModal(){
 
-document.getElementById("modal").style.display="flex";
-
-// show form
-document.getElementById("formSection").style.display="block";
-
-// hide view
-document.getElementById("viewSection").style.display="none";
-document.getElementById("viewSection").innerHTML="";
-
-// auto fill
-document.getElementById("name").value=currentUser;
-document.getElementById("date").value = fixDate(new Date());
-}
-
-// ✅ FIXED CLOSE
-function closeModal(){
-document.getElementById("modal").style.display="none";
-
-// reset UI
-document.getElementById("formSection").style.display="block";
-document.getElementById("viewSection").style.display="none";
-}
-
-// DATE FIX
 function fixDate(d){
 if(!d) return "";
-let date=new Date(d);
-date.setMinutes(date.getMinutes()-date.getTimezoneOffset());
-return date.toISOString().split("T")[0];
+let date = new Date(d);
+return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 }
 
-// CALENDAR
+function resetForm(){
+document.getElementById("date").value=fixDate(new Date());
+document.getElementById("indusid").value="";
+document.getElementById("count").value="";
+document.getElementById("sensor").value="";
+document.getElementById("type").value="";
+document.getElementById("photo").value="";
+document.getElementById("uploadStatus").innerText="";
+}
+
+function openModal(){
+document.getElementById("modal").style.display="flex";
+document.getElementById("formSection").style.display="block";
+document.getElementById("viewSection").style.display="none";
+document.getElementById("name").value=currentUser;
+document.getElementById("date").value=fixDate(new Date());
+}
+
+function closeModal(){
+document.getElementById("modal").style.display="none";
+}
+
 function renderCalendar(){
 let year=currentDate.getFullYear();
 let month=currentDate.getMonth();
@@ -237,17 +253,15 @@ let firstDay=new Date(year,month,1).getDay();
 let days=new Date(year,month+1,0).getDate();
 
 let html="";
-
 for(let i=0;i<firstDay;i++) html+="<div></div>";
 
 for(let d=1;d<=days;d++){
-
 let date=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-let found=allData.filter(x=>fixDate(x.date)===date);
+let found=allData.some(x=>fixDate(x.date)===date);
 
 html+=`
 <div class="day" onclick="showDay('${date}')"
-style="background:${found.length?'#22c55e':'#ef4444'}">
+style="background:${found?'#22c55e':'#ef4444'}">
 ${d}
 </div>`;
 }
@@ -255,22 +269,15 @@ ${d}
 document.getElementById("calendar").innerHTML=html;
 }
 
-// BASE64
-function toBase64(file){
-return new Promise((resolve)=>{
-let reader=new FileReader();
-reader.readAsDataURL(file);
-reader.onload=()=>resolve(reader.result);
-});
-}
-
-// ✅ VIEW DATA FIXED
 function showDay(date){
-
 let list=allData.filter(x=>fixDate(x.date)===date);
 
+document.getElementById("modal").style.display="flex";
+
 if(list.length==0){
-alert("No data");
+document.getElementById("formSection").style.display="block";
+document.getElementById("viewSection").style.display="none";
+document.getElementById("date").value=date;
 return;
 }
 
@@ -281,83 +288,148 @@ let html=`<h3>${date}</h3>`;
 let total=0;
 
 list.forEach(x=>{
-total+=Number(x.count);
+total+=Number(x.count||0);
 
 html+=`
-<div style="background:#222;padding:10px;margin:5px;border-radius:8px;">
+<div style="background:#222;padding:10px;margin:5px;border-radius:8px; position:relative;">
+
+${isAdmin ? `
+<button onclick="deleteEntry('${fixDate(x.date)}','${x.indusid}')" 
+style="position:absolute;top:8px;right:8px;background:red;color:white;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;">
+❌
+</button>` : ""}
+
 👤 ${x.name}<br>
 🏷 ${x.indusid}<br>
 📊 ${x.workType}<br>
 🔢 ${x.count}<br>
-🎥 ${x.videoUrl ? `<a href="${x.videoUrl}" target="_blank">View Video</a>` : 'No Video'}
+
 </div>`;
 });
 
 html+=`<h3>Total: ${total}</h3>
+<button class="submit" onclick="openModal()">➕ Add More</button>
+<button onclick="closeModal()" style="background:#2563eb;">⬅ Back</button>
 <button class="close" onclick="closeModal()">Close</button>`;
 
 document.getElementById("viewSection").innerHTML=html;
-document.getElementById("modal").style.display="flex";
 }
 
-// SUBMIT
+
+async function deleteEntry(date, indusid){
+
+if(!confirm("Delete this entry?")) return;
+
+try{
+await fetch(WEB_APP_URL, {
+method: "POST",
+body: JSON.stringify({
+action: "delete",
+date: date,
+indusid: indusid
+})
+});
+
+alert("Deleted ✅");
+loadData();
+
+}catch(e){
+alert("Delete failed ❌");
+}
+}
+
+function toBase64(file){
+return new Promise(resolve=>{
+let reader=new FileReader();
+reader.readAsDataURL(file);
+reader.onload=()=>resolve(reader.result);
+});
+}
+
+function handlePhoto(){
+let file = document.getElementById("photo").files[0];
+let status = document.getElementById("uploadStatus");
+
+if(!file){status.innerText="";return;}
+
+if(file.size > 5*1024*1024){
+status.innerText="❌ Max 5MB allowed";
+document.getElementById("photo").value="";
+return;
+}
+
+status.innerText="⏳ Processing...";
+let reader = new FileReader();
+reader.readAsDataURL(file);
+reader.onload = ()=>{status.innerText="✅ Ready";};
+}
+
 async function submitWorking(){
 
 if(isSubmitting) return;
 
-let btn=document.querySelector(".submit");
-isSubmitting=true;
-btn.innerText="Uploading...";
-btn.disabled=true;
+let btn = document.getElementById("submitBtn");
+isSubmitting = true;
+btn.style.display = "none";
+
+let selectedDate = fixDate(document.getElementById("date").value);
+let indus = document.getElementById("indusid").value;
+
+if(allData.some(x => fixDate(x.date) === selectedDate && x.indusid === indus)){
+alert("❌ Already saved");
+isSubmitting = false;
+btn.style.display = "block";
+return;
+}
 
 try{
 
-let file=document.getElementById("video").files[0];
-
+let file = document.getElementById("photo").files[0];
 let base64="", mimeType="";
 
 if(file){
-if(file.size>10*1024*1024){
-alert("Max 10MB");
-return;
+base64 = await toBase64(file);
+mimeType = file.type;
 }
-base64=await toBase64(file);
-mimeType=file.type;
-}
-
-let data={
-name:currentUser,
-count:document.getElementById("count").value,
-workType:document.getElementById("type").value,
-indusid:document.getElementById("indusid").value,
-date:document.getElementById("date").value,
-video:base64,
-mimeType:mimeType
-};
 
 await fetch(WEB_APP_URL,{
 method:"POST",
-body:JSON.stringify(data)
+body:JSON.stringify({
+name:currentUser,
+count:document.getElementById("count").value,
+sensor:document.getElementById("sensor").value,
+workType:document.getElementById("type").value,
+indusid:indus,
+date:selectedDate,
+photo:base64,
+mimeType:mimeType
+})
 });
 
 alert("Saved ✅");
+resetForm();
 closeModal();
 loadData();
 
 }catch(e){
-console.log(e);
 alert("Error ❌");
 }
 
-isSubmitting=false;
-btn.innerText="Submit";
-btn.disabled=false;
+isSubmitting = false;
+btn.style.display = "block";
 }
 
-// LOAD
 async function loadData(){
 let res=await fetch(WEB_APP_URL+"?type=get");
-allData=await res.json();
+allData = await res.json();
+
+// 👇 ROLE DETECT
+let userRow = allData.find(x => x.name === currentUser);
+
+if(userRow && userRow.role){
+isAdmin = userRow.role.toLowerCase() === "admin";
+}
+
 renderCalendar();
 }
 
