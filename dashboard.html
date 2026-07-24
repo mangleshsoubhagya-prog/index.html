@@ -1165,12 +1165,33 @@ function listenAttendance(){
 }
 function showAssignList(){
 
-    let assigned = excelData.filter(item => item.assigned);
+    const reportIds = new Set();
 
-    if(assigned.length===0){
-        alert("No Assigned Tech");
-        return;
-    }
+allReportsData.forEach(r => {
+    reportIds.add(cleanIndusId(r.indusId));
+});
+
+let assigned = excelData.filter(item => {
+
+    // Assigned hona chahiye
+    if (!item.assigned) return false;
+
+    const indusId = cleanIndusId(
+        item["Indus ID"] ||
+        item["Indus Id"] ||
+        item["INDUS ID"] ||
+        item["INDUS_ID"] ||
+        ""
+    );
+
+    // Complete ho gaya hai to Assign List me mat dikhao
+    if (reportIds.has(indusId)) return false;
+
+    // Hold ya Remark update ke baad bhi mat dikhao
+    if (item.pendingStatus && item.pendingStatus !== "Pending") return false;
+
+    return true;
+});
 
     let html = `
     <div style="
@@ -1495,7 +1516,7 @@ if(d.data){
 
     row.remarkTime = d.remarkTime || "";
 
-    row.pendingStatus = d.pendingStatus || "";
+    row.pendingStatus = d.pendingStatus || d.status || "Pending";
     row.assigned = d.assigned || false;
     row.assignedTo = d.assignedTo || "";
     row.assignedTime = d.assignedTime || "";
@@ -2901,7 +2922,37 @@ function showProjectMenu(){
         (x.projectId || x.Project || x.project || "Default Project").trim()
     )
    )].sort();
+ const reportIds = new Set();
 
+allReportsData.forEach(r => {
+    reportIds.add(cleanIndusId(r.indusId));
+});
+
+const projectCounts = {};
+
+excelData.forEach(item => {
+
+    const indusId = cleanIndusId(
+        item["Indus ID"] ||
+        item["Indus Id"] ||
+        item["INDUS ID"] ||
+        item["INDUS_ID"] ||
+        item["IndusID"]
+    );
+
+    // Report me mil gaya to Pending nahi hai
+    if(reportIds.has(indusId)) return;
+
+    const project = (
+        item.projectId ||
+        item.Project ||
+        item.project ||
+        "Default Project"
+    ).trim();
+
+    projectCounts[project] = (projectCounts[project] || 0) + 1;
+
+});
     let html = `
     <div style="padding:15px;font-weight:bold;font-size:20px;">
         📂 Select Project
@@ -2921,6 +2972,17 @@ function showProjectMenu(){
         justify-content:space-between;
         ">
             <span>📁 ${project}</span>
+
+<span style="
+background:#2563eb;
+color:#fff;
+padding:4px 10px;
+border-radius:20px;
+font-size:13px;
+font-weight:bold;
+">
+${projectCounts[project]}
+</span>
         </div>
         `;
 
