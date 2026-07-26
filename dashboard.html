@@ -832,7 +832,8 @@ onclick="currentMode='hold';showProjectMenu();"
 
 </div>
 <div class="card"
-onclick="showAssignList()"
+id="assignCard"
+onclick="showAssignDashboard()"
 style="
         width:100%;
         margin-top:10px;
@@ -850,9 +851,11 @@ style="
     <div class="value" id="assignCount">0</div>
 
 </div>
-</div>
-   
 
+<button onclick="unassignAllSites()">
+    🧹 Unassign All
+</button>
+</div>
 
     <!-- Dashboard Grid -->
     <div class="dashboard-grid">
@@ -1163,15 +1166,246 @@ function listenAttendance(){
     });
 
 }
-function showAssignList(){
+function showAssignDashboard(){
 
-    const reportIds = new Set();
+    let assigned = excelData.filter(item => item.assigned);
+    // Assign Name Wise Count
+const assignMap = {};
 
-allReportsData.forEach(r => {
-    reportIds.add(cleanIndusId(r.indusId));
+assigned.forEach(item => {
+
+    const assignName = item.assignedTo || "Unknown";
+
+    if(!assignMap[assignName]){
+        assignMap[assignName] = [];
+    }
+
+    assignMap[assignName].push(item);
+
 });
 
-let assigned = excelData.filter(item => {
+    if(assigned.length===0){
+        alert("No Assigned Site");
+        return;
+    }
+
+    let html=`
+    <div id="assignDashboardPopup"
+    style="
+    position:fixed;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background:#f5f7fb;
+    z-index:999999;
+    overflow:auto;
+    ">
+
+        <div style="
+        position:sticky;
+        top:0;
+        background:white;
+        padding:18px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        box-shadow:0 2px 10px rgba(0,0,0,.08);
+        ">
+
+            <h2 style="margin:0;">
+            👤 Assign Dashboard
+            </h2>
+
+            <button
+            onclick="document.getElementById('assignDashboardPopup').remove()"
+            style="
+            background:#ef4444;
+            color:white;
+            border:none;
+            padding:10px 18px;
+            border-radius:8px;
+            cursor:pointer;
+            ">
+            Close
+            </button>
+
+        </div>
+
+        <div id="assignDashboardBody"
+        style="padding:20px;">
+        
+
+        </div>
+        
+
+    </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend",html);
+    const body = document.getElementById("assignDashboardBody");
+
+Object.keys(assignMap).forEach(name=>{
+
+    body.innerHTML += `
+    
+    <div
+    onclick="openAssignEngineer('${name}')"
+    style="
+    background:white;
+    padding:18px;
+    margin-bottom:15px;
+    border-radius:14px;
+    cursor:pointer;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    transition:.3s;
+    ">
+
+        <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        ">
+
+            <div>
+
+                <div style="
+                font-size:18px;
+                font-weight:bold;
+                ">
+                👤 ${name}
+                </div>
+
+                <div style="
+                color:#666;
+                margin-top:5px;
+                ">
+                Assigned Sites : ${assignMap[name].length}
+                </div>
+
+            </div>
+
+            <div style="
+            font-size:24px;
+            ">
+            ➜
+            </div>
+
+        </div>
+
+    </div>
+    
+    `;
+
+});
+
+}
+function openAssignEngineer(name){
+
+    const assignData = excelData.filter(item =>
+
+        item.assigned &&
+        item.assignedTo === name
+
+    );
+
+    const techMap = {};
+
+    assignData.forEach(item=>{
+
+        const tech =
+
+            item["FSC Name"] ||
+            item["FSC NAME"] ||
+            item["Fsc Name"] ||
+            item["Tech Name"] ||
+            "Unknown Tech";
+
+        if(!techMap[tech]){
+            techMap[tech]=[];
+        }
+
+        techMap[tech].push(item);
+
+    });
+
+    let html="";
+
+    Object.keys(techMap).forEach(tech=>{
+
+        html+=`
+
+        <div
+        onclick="openAssignTech('${name}','${tech}')"
+        style="
+        background:white;
+        margin-bottom:15px;
+        padding:18px;
+        border-radius:14px;
+        box-shadow:0 5px 15px rgba(0,0,0,.08);
+        cursor:pointer;
+        ">
+
+            <div style="
+            display:flex;
+            justify-content:space-between;
+            ">
+
+                <div>
+
+                    <div style="
+                    font-size:17px;
+                    font-weight:bold;
+                    ">
+                    👷 ${tech}
+                    </div>
+
+                    <div style="
+                    color:#666;
+                    margin-top:5px;
+                    ">
+                    Assigned : ${techMap[tech].length}
+                    </div>
+
+                </div>
+
+                <div style="font-size:22px;">
+                ➜
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+    document.getElementById("assignDashboardBody").innerHTML=`
+
+        <button
+        onclick="showAssignDashboard()"
+        style="
+        margin-bottom:15px;
+        background:#2563eb;
+        color:white;
+        border:none;
+        padding:10px 18px;
+        border-radius:8px;
+        cursor:pointer;
+        ">
+        ⬅ Back
+        </button>
+
+        <h2>👤 ${name}</h2>
+
+        ${html}
+
+    `;
+
+}
+function openAssignTech(assignName, techName){
+    let assigned = excelData.filter(item => {
 
     // Assigned hona chahiye
     if (!item.assigned) return false;
@@ -1378,6 +1612,230 @@ const fscContact =
 
     document.body.appendChild(popup);
 
+
+
+
+}
+function showAssignList(){
+let assigned = getAssignListData();
+    let html = `
+    <div style="
+    background:white;
+    padding:20px;
+    max-height:80vh;
+    overflow:auto;
+    ">
+
+    <h2>👤 Assign List</h2>
+<table
+style="
+width:100%;
+border-collapse:collapse;
+overflow:hidden;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,.12);
+font-size:14px;
+">
+<tr style="
+background:linear-gradient(90deg,#2563eb,#1d4ed8);
+color:white;
+font-weight:bold;
+">
+    <th style="padding:12px;">🆔 Indus ID</th>
+    <th style="padding:12px;">🏢 Site Name</th>
+    <th style="padding:12px;">👷 Tech Name</th>
+    <th style="padding:12px;">📞 Tech Contact</th>
+    <th style="padding:12px;">👤 Assigned To</th>
+    <th style="padding:12px;">👨‍🔧 FSC Name</th>
+    <th style="padding:12px;">☎ FSC Contact</th>
+    <th style="padding:12px;">📍 Location</th>
+</tr>
+    `;
+
+    assigned.forEach(item=>{
+
+const indusId =
+    item["Indus ID"] ||
+    item["Indus Id"] ||
+    item["INDUS ID"] ||
+    item["INDUS_ID"] ||
+    "-";
+
+const siteName =
+    item["Name"] ||
+    item["Site Name"] ||
+    item["SITE NAME"] ||
+    item["Location"] ||
+    "-";
+
+const tech =
+    item["FSC Name"] ||
+    item["FSC NAME"] ||
+    item["Fsc Name"] ||
+    item["Tech Name"] ||
+    "-";
+
+const techNumber =
+    item["Tech Number"] ||
+    item["Tech Contact no"] ||
+    item["Mobile"] ||
+    item["Phone"] ||
+    item["Contact"] ||
+    "-";
+    
+    const fscName =
+    item["FSE Name"] ||
+    item["FSC Name"] ||
+    item["FSC NAME"] ||
+    item["Engineer Name"] ||
+    "-";
+
+const fscContact =
+    item["FSE Contact"] ||
+    item["FSC Contact"] ||
+    item["FSE Mobile"] ||
+    item["FSC Mobile"] ||
+    item["Engineer Mobile"] ||
+    item["Contact No"] ||
+    "-";
+
+        html += `
+<tr>
+
+    <td>${indusId}</td>
+
+    <td>${siteName}</td>
+
+    <td>${tech}</td>
+
+    <td>
+    ${
+        techNumber !== "-"
+        ? `
+        <a href="tel:${techNumber}"
+        style="
+        color:#2563eb;
+        text-decoration:none;
+        font-weight:bold;
+        ">
+        📞 ${techNumber}
+        </a>
+        `
+        : "-"
+    }
+</td>
+<td>${item.assignedTo || "-"}</td>
+<td>${fscName}</td>
+
+<td>
+    ${
+        fscContact !== "-"
+        ? `
+        <a href="tel:${fscContact}"
+        style="
+        color:#2563eb;
+        text-decoration:none;
+        font-weight:bold;
+        ">
+        📞 ${fscContact}
+        </a>
+        `
+        : "-"
+    }
+</td>
+
+    <td>
+        <button
+        onclick="openSiteLocation(
+        '${item["Lat"] || item["LAT"] || item["Latitude"] || item["latitude"] || item["Site Lat"] || ""}',
+        '${item["Long"] || item["LONG"] || item["Longitude"] || item["longitude"] || item["Lng"] || item["LNG"] || item["Site Long"] || ""}'
+        )"
+        style="
+        background:#16a34a;
+        color:white;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        cursor:pointer;
+        ">
+        📍 Map
+        </button>
+    </td>
+
+</tr>
+`;
+    });
+
+    html += `
+    </table>
+
+    <br>
+
+    <button
+    onclick="this.parentElement.parentElement.remove()"
+    style="
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:10px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    ">
+    Close
+    </button>
+
+    </div>
+    `;
+
+    const popup = document.createElement("div");
+
+    popup.style.position="fixed";
+    popup.style.left="0";
+    popup.style.top="0";
+    popup.style.width="100%";
+    popup.style.height="100%";
+    popup.style.background="rgba(0,0,0,.4)";
+    popup.style.zIndex="999999";
+
+    popup.appendChild(
+        document.createRange().createContextualFragment(html)
+    );
+
+    document.body.appendChild(popup);
+
+}
+function getAssignListData() {
+
+    const reportIds = new Set();
+
+    allReportsData.forEach(r => {
+        reportIds.add(cleanIndusId(r.indusId));
+    });
+
+    return excelData.filter(item => {
+
+        // Assigned hona chahiye
+        if (!item.assigned) return false;
+
+        const indusId = cleanIndusId(
+            item["Indus ID"] ||
+            item["Indus Id"] ||
+            item["INDUS ID"] ||
+            item["INDUS_ID"] ||
+            ""
+        );
+
+        // Complete remove
+        if (reportIds.has(indusId)) return false;
+
+        // Hold remove
+        if (item.pendingStatus && item.pendingStatus !== "Pending")
+            return false;
+
+        return true;
+
+    });
+
 }
 function openSiteLocation(lat, lng){
 
@@ -1540,22 +1998,28 @@ if(d.data){
         document.getElementById("excelCount").innerText=excelData.length;
         console.log("Excel Data Sample:", excelData[0]);
         updateCompletedPending();
+        const assignData = getAssignListData();
+
+document.getElementById("assignCount").innerText = assignData.length;
+
+const card = document.getElementById("assignCard");
+
+card.style.display = assignData.length ? "block" : "none";
 
     });
 
-}
-function listenAssignedSites(){
+}function listenAssignedSites() {
 
     db.collection("pendingSites")
-    .onSnapshot(snapshot=>{
+    .onSnapshot(snapshot => {
 
         assignedSitesData = [];
 
-        snapshot.forEach(doc=>{
+        snapshot.forEach(doc => {
 
             const d = doc.data();
 
-            if(d.assignedTo){
+            if (d.assignedTo) {
 
                 assignedSitesData.push({
                     id: doc.id,
@@ -1566,8 +2030,10 @@ function listenAssignedSites(){
 
         });
 
-        document.getElementById("assignCount").innerText =
-        assignedSitesData.length;
+        // Popup wale same filter se count nikalo
+        const assignData = getAssignListData();
+
+        document.getElementById("assignCount").innerText = assignData.length;
 
     });
 
@@ -4373,6 +4839,46 @@ showPendingTechMenu();
 
         console.error(err);
         alert("❌ Unassign Failed");
+
+    }
+
+}
+async function unassignAllSites() {
+
+    if (!confirm("⚠️ Sabhi Assigned Sites ko Unassign karna hai?")) {
+        return;
+    }
+
+    try {
+
+        const snapshot = await db.collection("pendingSites").get();
+
+        const batch = db.batch();
+
+        snapshot.forEach(doc => {
+
+            const d = doc.data();
+
+            if (d.assigned) {
+
+                batch.update(doc.ref, {
+                    assigned: false,
+                    assignedTo: "",
+                    assignedTime: firebase.firestore.FieldValue.delete()
+                });
+
+            }
+
+        });
+
+        await batch.commit();
+
+        alert("✅ All Assigned Sites Unassigned Successfully");
+
+    } catch (err) {
+
+        console.error(err);
+        alert("❌ Error: " + err.message);
 
     }
 
