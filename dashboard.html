@@ -710,7 +710,7 @@ font-weight:bold;
 <input
     type="file"
     id="csvFile"
-    accept=".csv"
+    accept=".csv,.xlsx,.xls"
     multiple
     onchange="handleCSV(this)"
     style="margin-top:15px;width:100%;">
@@ -1168,7 +1168,14 @@ function listenAttendance(){
 }
 function showAssignDashboard(){
 
-    let assigned = excelData.filter(item => item.assigned);
+    // Agar popup pehle se open hai to remove karo
+    const oldPopup = document.getElementById("assignDashboardPopup");
+
+    if(oldPopup){
+        oldPopup.remove();
+    }
+
+    let assigned = getAssignListData();
     // Assign Name Wise Count
 const assignMap = {};
 
@@ -1244,8 +1251,10 @@ assigned.forEach(item => {
 
     document.body.insertAdjacentHTML("beforeend",html);
     const body = document.getElementById("assignDashboardBody");
+    console.log("Assigned Data:", assigned);
+    console.log("Assign Map:", assignMap);
 
-Object.keys(assignMap).forEach(name=>{
+    Object.keys(assignMap).forEach(name=>{
 
     body.innerHTML += `
     
@@ -1302,7 +1311,7 @@ Object.keys(assignMap).forEach(name=>{
 }
 function openAssignEngineer(name){
 
-    const assignData = excelData.filter(item =>
+    const assignData = getAssignListData().filter(item =>
 
         item.assigned &&
         item.assignedTo === name
@@ -1313,14 +1322,14 @@ function openAssignEngineer(name){
 
     assignData.forEach(item=>{
 
-        const tech =
-
-            item["FSC Name"] ||
-            item["FSC NAME"] ||
-            item["Fsc Name"] ||
-            item["Tech Name"] ||
-            "Unknown Tech";
-
+       const tech =
+    item["Tech Name"] ||
+    item["TECH NAME"] ||
+    item["Tech"] ||
+    item["FSC Name"] ||
+    item["FSC NAME"] ||
+    item["Fsc Name"] ||
+    "Unknown Tech";
         if(!techMap[tech]){
             techMap[tech]=[];
         }
@@ -1405,28 +1414,30 @@ function openAssignEngineer(name){
 
 }
 function openAssignTech(assignName, techName){
-    let assigned = excelData.filter(item => {
+    const assigned = getAssignListData().filter(item => {
 
-    // Assigned hona chahiye
-    if (!item.assigned) return false;
+    const tech =
+        item["FSC Name"] ||
+        item["FSC NAME"] ||
+        item["Fsc Name"] ||
+        item["Tech Name"] ||
+        "";
+        console.log(
+    "CSV Tech:",
+    tech,
+    "| Click Tech:",
+    techName,
+    "| Assign:",
+    item.assignedTo
+);
 
-    const indusId = cleanIndusId(
-        item["Indus ID"] ||
-        item["Indus Id"] ||
-        item["INDUS ID"] ||
-        item["INDUS_ID"] ||
-        ""
+    return (
+        item.assigned &&
+        item.assignedTo === assignName &&
+        tech.trim() === techName.trim()
     );
 
-    // Complete ho gaya hai to Assign List me mat dikhao
-    if (reportIds.has(indusId)) return false;
-
-    // Hold ya Remark update ke baad bhi mat dikhao
-    if (item.pendingStatus && item.pendingStatus !== "Pending") return false;
-
-    return true;
 });
-
     let html = `
     <div style="
     background:white;
@@ -2564,19 +2575,24 @@ function handleImport() {
         });
       }
 
-      // ---------------- EXCEL ----------------
-      else {
+// ---------------- EXCEL ----------------
+else {
 
-        const workbook = XLSX.read(
-          new Uint8Array(e.target.result),
-          { type: "array" }
-        );
+    const workbook = XLSX.read(
+        new Uint8Array(e.target.result),
+        { type: "array" }
+    );
 
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
 
-    
-      }
+    // Excel → JSON
+    data = XLSX.utils.sheet_to_json(sheet, {
+        defval: "",
+        raw: false
+    });
+
+}
 
       console.log("Imported Data:", data);
 
@@ -3175,27 +3191,54 @@ async function importPendingCSV() {
 
     const file = document.getElementById("csvFile").files[0];
 
-    if (!file) {
-        alert("Please select CSV file");
-        return;
-    }
+   if (!file) {
+    alert("Please select a CSV or Excel file");
+    return;
+}
+
+const ext = file.name.split(".").pop().toLowerCase();
+
+if (!["csv", "xlsx", "xls"].includes(ext)) {
+    alert("❌ Only CSV, XLSX and XLS files are allowed.");
+    return;
+}
 
     const reader = new FileReader();
 
     reader.onload = async function (e) {
 
-        const text = e.target.result;
+   let data = [];
 
-        const workbook = XLSX.read(text, {
-            type: "binary"
-        });
+if (ext === "csv") {
 
-        const sheet =
-            workbook.Sheets[workbook.SheetNames[0]];
+    const text = e.target.result;
 
-   const data = XLSX.utils.sheet_to_json(sheet,{
-    defval:""
-});
+    const workbook = XLSX.read(text, {
+        type: "binary"
+    });
+
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    data = XLSX.utils.sheet_to_json(sheet, {
+        defval: ""
+    });
+
+} else {
+
+    const workbook = XLSX.read(
+        new Uint8Array(e.target.result),
+        {
+            type: "array"
+        }
+    );
+
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    data = XLSX.utils.sheet_to_json(sheet, {
+        defval: ""
+    });
+
+}
 // Project ID = File Name
 const projectId = file.name.replace(/\.[^/.]+$/, "");
 console.log("Project ID =", projectId);
@@ -3266,7 +3309,11 @@ await db.collection("pendingMeta")
         );
 
     };
-reader.readAsBinaryString(file);
+if (ext === "csv") {
+    reader.readAsBinaryString(file);
+} else {
+    reader.readAsArrayBuffer(file);
+}
 
 }
 
@@ -3395,8 +3442,19 @@ allReportsData.forEach(r => {
 });
 
 const projectCounts = {};
-
 excelData.forEach(item => {
+    console.log(
+    "Project:",
+    item.projectId,
+    "| Indus:",
+    item["Indus ID"],
+    "| pendingStatus:",
+    item.pendingStatus,
+    "| status:",
+    item.status,
+    "| remark:",
+    item.remark
+);
 
     const indusId = cleanIndusId(
         item["Indus ID"] ||
@@ -3406,8 +3464,8 @@ excelData.forEach(item => {
         item["IndusID"]
     );
 
-    // Report me mil gaya to Pending nahi hai
-    if(reportIds.has(indusId)) return;
+    // Completed site skip
+    if (reportIds.has(indusId)) return;
 
     const project = (
         item.projectId ||
@@ -3416,7 +3474,27 @@ excelData.forEach(item => {
         "Default Project"
     ).trim();
 
-    projectCounts[project] = (projectCounts[project] || 0) + 1;
+    // 👇 Hold Mode
+    if (currentMode === "hold") {
+
+        if (
+            item.pendingStatus &&
+            item.pendingStatus !== "Pending"
+        ) {
+            projectCounts[project] =
+                (projectCounts[project] || 0) + 1;
+        }
+
+    }
+
+    // 👇 Pending Mode
+    else {
+if ((item.remark || "").trim() !== "") {
+    projectCounts[project] =
+        (projectCounts[project] || 0) + 1;
+}
+
+    }
 
 });
     let html = `
@@ -3424,8 +3502,13 @@ excelData.forEach(item => {
         📂 Select Project
     </div>
     `;
-
-    projects.forEach(project=>{
+const holdProjects = projects.filter(project => {
+    return (projectCounts[project] || 0) > 0;
+});
+    Object.keys(projectCounts)
+.sort()
+.forEach(project => {
+    if (projectCounts[project] <= 0) return;
 
         html += `
         <div
@@ -4670,7 +4753,8 @@ await db.collection("pendingSites")
     remarkBy: currentUser,
     remarkTime: new Date().toISOString(),
 
-    pendingStatus: remark ? "Hold" : ""
+   pendingStatus: remark ? "Hold" : "Pending",
+status: remark ? "Hold" : "Pending"
 
 });
         alert("✅ Remark Updated");
