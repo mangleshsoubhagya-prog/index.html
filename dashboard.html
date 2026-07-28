@@ -605,6 +605,9 @@ height:fit-content;
 <a href="#" onclick="showPage('dashboard')">Dashboard</a>
 <a href="#" onclick="showPage('attendance')">Attendance</a>
 <a href="#" onclick="showPage('reports')">Reports</a>
+<a href="#" onclick="showPage('assign')">
+    👤 Assign List
+</a>
 <a href="#" onclick="showPage('expense')">Expense</a>
 <a href="#" onclick="showPage('createid')" id="createIdMenu">Create ID</a>
 <a href="#" onclick="showPage('stock')">📦 Stock</a>
@@ -710,7 +713,7 @@ font-weight:bold;
 <input
     type="file"
     id="csvFile"
-    accept=".csv,.xlsx,.xls"
+    accept=".csv"
     multiple
     onchange="handleCSV(this)"
     style="margin-top:15px;width:100%;">
@@ -832,8 +835,7 @@ onclick="currentMode='hold';showProjectMenu();"
 
 </div>
 <div class="card"
-id="assignCard"
-onclick="showAssignDashboard()"
+onclick="showAssignList()"
 style="
         width:100%;
         margin-top:10px;
@@ -851,11 +853,9 @@ style="
     <div class="value" id="assignCount">0</div>
 
 </div>
-
-<button onclick="unassignAllSites()">
-    🧹 Unassign All
-</button>
 </div>
+   
+
 
     <!-- Dashboard Grid -->
     <div class="dashboard-grid">
@@ -921,7 +921,20 @@ style="
     <div id="expenseSection" style="display:none">
         <iframe src="expence.html"></iframe>
     </div>
-    <div
+<div id="assignSection" style="display:none;">
+
+    <iframe
+        src="assign/assign.html"
+        style="
+            width:100%;
+            height:100vh;
+            border:none;
+            background:white;
+        ">
+    </iframe>
+
+</div>
+    
     <div id="stockPage" class="page" style="display:none;">
     <iframe
         src="stock.html"
@@ -1166,686 +1179,220 @@ function listenAttendance(){
     });
 
 }
-function showAssignDashboard(){
-
-    // Agar popup pehle se open hai to remove karo
-    const oldPopup = document.getElementById("assignDashboardPopup");
-
-    if(oldPopup){
-        oldPopup.remove();
-    }
-
-    let assigned = getAssignListData();
-    // Assign Name Wise Count
-const assignMap = {};
-
-assigned.forEach(item => {
-
-    const assignName = item.assignedTo || "Unknown";
-
-    if(!assignMap[assignName]){
-        assignMap[assignName] = [];
-    }
-
-    assignMap[assignName].push(item);
-
-});
-
-    if(assigned.length===0){
-        alert("No Assigned Site");
-        return;
-    }
-
-    let html=`
-    <div id="assignDashboardPopup"
-    style="
-    position:fixed;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    background:#f5f7fb;
-    z-index:999999;
-    overflow:auto;
-    ">
-
-        <div style="
-        position:sticky;
-        top:0;
-        background:white;
-        padding:18px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        box-shadow:0 2px 10px rgba(0,0,0,.08);
-        ">
-
-            <h2 style="margin:0;">
-            👤 Assign Dashboard
-            </h2>
-
-            <button
-            onclick="document.getElementById('assignDashboardPopup').remove()"
-            style="
-            background:#ef4444;
-            color:white;
-            border:none;
-            padding:10px 18px;
-            border-radius:8px;
-            cursor:pointer;
-            ">
-            Close
-            </button>
-
-        </div>
-
-        <div id="assignDashboardBody"
-        style="padding:20px;">
-        
-
-        </div>
-        
-
-    </div>
-    `;
-
-    document.body.insertAdjacentHTML("beforeend",html);
-    const body = document.getElementById("assignDashboardBody");
-    console.log("Assigned Data:", assigned);
-    console.log("Assign Map:", assignMap);
-
-    Object.keys(assignMap).forEach(name=>{
-
-    body.innerHTML += `
-    
-    <div
-    onclick="openAssignEngineer('${name}')"
-    style="
-    background:white;
-    padding:18px;
-    margin-bottom:15px;
-    border-radius:14px;
-    cursor:pointer;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-    transition:.3s;
-    ">
-
-        <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        ">
-
-            <div>
-
-                <div style="
-                font-size:18px;
-                font-weight:bold;
-                ">
-                👤 ${name}
-                </div>
-
-                <div style="
-                color:#666;
-                margin-top:5px;
-                ">
-                Assigned Sites : ${assignMap[name].length}
-                </div>
-
-            </div>
-
-            <div style="
-            font-size:24px;
-            ">
-            ➜
-            </div>
-
-        </div>
-
-    </div>
-    
-    `;
-
-});
-
-}
-function openAssignEngineer(name){
-
-    const assignData = getAssignListData().filter(item =>
-
-        item.assigned &&
-        item.assignedTo === name
-
-    );
-
-    const techMap = {};
-
-    assignData.forEach(item=>{
-
-       const tech =
-    item["Tech Name"] ||
-    item["TECH NAME"] ||
-    item["Tech"] ||
-    item["FSC Name"] ||
-    item["FSC NAME"] ||
-    item["Fsc Name"] ||
-    "Unknown Tech";
-        if(!techMap[tech]){
-            techMap[tech]=[];
-        }
-
-        techMap[tech].push(item);
-
-    });
-
-    let html="";
-
-    Object.keys(techMap).forEach(tech=>{
-
-        html+=`
-
-        <div
-        onclick="openAssignTech('${name}','${tech}')"
-        style="
-        background:white;
-        margin-bottom:15px;
-        padding:18px;
-        border-radius:14px;
-        box-shadow:0 5px 15px rgba(0,0,0,.08);
-        cursor:pointer;
-        ">
-
-            <div style="
-            display:flex;
-            justify-content:space-between;
-            ">
-
-                <div>
-
-                    <div style="
-                    font-size:17px;
-                    font-weight:bold;
-                    ">
-                    👷 ${tech}
-                    </div>
-
-                    <div style="
-                    color:#666;
-                    margin-top:5px;
-                    ">
-                    Assigned : ${techMap[tech].length}
-                    </div>
-
-                </div>
-
-                <div style="font-size:22px;">
-                ➜
-                </div>
-
-            </div>
-
-        </div>
-
-        `;
-
-    });
-
-    document.getElementById("assignDashboardBody").innerHTML=`
-
-        <button
-        onclick="showAssignDashboard()"
-        style="
-        margin-bottom:15px;
-        background:#2563eb;
-        color:white;
-        border:none;
-        padding:10px 18px;
-        border-radius:8px;
-        cursor:pointer;
-        ">
-        ⬅ Back
-        </button>
-
-        <h2>👤 ${name}</h2>
-
-        ${html}
-
-    `;
-
-}
-function openAssignTech(assignName, techName){
-    const assigned = getAssignListData().filter(item => {
-
-    const tech =
-        item["FSC Name"] ||
-        item["FSC NAME"] ||
-        item["Fsc Name"] ||
-        item["Tech Name"] ||
-        "";
-        console.log(
-    "CSV Tech:",
-    tech,
-    "| Click Tech:",
-    techName,
-    "| Assign:",
-    item.assignedTo
-);
-
-    return (
-        item.assigned &&
-        item.assignedTo === assignName &&
-        tech.trim() === techName.trim()
-    );
-
-});
-    let html = `
-    <div style="
-    background:white;
-    padding:20px;
-    max-height:80vh;
-    overflow:auto;
-    ">
-
-    <h2>👤 Assign List</h2>
-<table
-style="
-width:100%;
-border-collapse:collapse;
-overflow:hidden;
-border-radius:12px;
-box-shadow:0 4px 15px rgba(0,0,0,.12);
-font-size:14px;
-">
-<tr style="
-background:linear-gradient(90deg,#2563eb,#1d4ed8);
-color:white;
-font-weight:bold;
-">
-    <th style="padding:12px;">🆔 Indus ID</th>
-    <th style="padding:12px;">🏢 Site Name</th>
-    <th style="padding:12px;">👷 Tech Name</th>
-    <th style="padding:12px;">📞 Tech Contact</th>
-    <th style="padding:12px;">👤 Assigned To</th>
-    <th style="padding:12px;">👨‍🔧 FSC Name</th>
-    <th style="padding:12px;">☎ FSC Contact</th>
-    <th style="padding:12px;">📍 Location</th>
-</tr>
-    `;
-
-    assigned.forEach(item=>{
-
-const indusId =
-    item["Indus ID"] ||
-    item["Indus Id"] ||
-    item["INDUS ID"] ||
-    item["INDUS_ID"] ||
-    "-";
-
-const siteName =
-    item["Name"] ||
-    item["Site Name"] ||
-    item["SITE NAME"] ||
-    item["Location"] ||
-    "-";
-
-const tech =
-    item["FSC Name"] ||
-    item["FSC NAME"] ||
-    item["Fsc Name"] ||
-    item["Tech Name"] ||
-    "-";
-
-const techNumber =
-    item["Tech Number"] ||
-    item["Tech Contact no"] ||
-    item["Mobile"] ||
-    item["Phone"] ||
-    item["Contact"] ||
-    "-";
-    
-    const fscName =
-    item["FSE Name"] ||
-    item["FSC Name"] ||
-    item["FSC NAME"] ||
-    item["Engineer Name"] ||
-    "-";
-
-const fscContact =
-    item["FSE Contact"] ||
-    item["FSC Contact"] ||
-    item["FSE Mobile"] ||
-    item["FSC Mobile"] ||
-    item["Engineer Mobile"] ||
-    item["Contact No"] ||
-    "-";
-
-        html += `
-<tr>
-
-    <td>${indusId}</td>
-
-    <td>${siteName}</td>
-
-    <td>${tech}</td>
-
-    <td>
-    ${
-        techNumber !== "-"
-        ? `
-        <a href="tel:${techNumber}"
-        style="
-        color:#2563eb;
-        text-decoration:none;
-        font-weight:bold;
-        ">
-        📞 ${techNumber}
-        </a>
-        `
-        : "-"
-    }
-</td>
-<td>${item.assignedTo || "-"}</td>
-<td>${fscName}</td>
-
-<td>
-    ${
-        fscContact !== "-"
-        ? `
-        <a href="tel:${fscContact}"
-        style="
-        color:#2563eb;
-        text-decoration:none;
-        font-weight:bold;
-        ">
-        📞 ${fscContact}
-        </a>
-        `
-        : "-"
-    }
-</td>
-
-    <td>
-        <button
-        onclick="openSiteLocation(
-        '${item["Lat"] || item["LAT"] || item["Latitude"] || item["latitude"] || item["Site Lat"] || ""}',
-        '${item["Long"] || item["LONG"] || item["Longitude"] || item["longitude"] || item["Lng"] || item["LNG"] || item["Site Long"] || ""}'
-        )"
-        style="
-        background:#16a34a;
-        color:white;
-        border:none;
-        padding:6px 10px;
-        border-radius:6px;
-        cursor:pointer;
-        ">
-        📍 Map
-        </button>
-    </td>
-
-</tr>
-`;
-    });
-
-    html += `
-    </table>
-
-    <br>
-
-    <button
-    onclick="this.parentElement.parentElement.remove()"
-    style="
-    background:#ef4444;
-    color:white;
-    border:none;
-    padding:10px 25px;
-    border-radius:8px;
-    cursor:pointer;
-    ">
-    Close
-    </button>
-
-    </div>
-    `;
-
-    const popup = document.createElement("div");
-
-    popup.style.position="fixed";
-    popup.style.left="0";
-    popup.style.top="0";
-    popup.style.width="100%";
-    popup.style.height="100%";
-    popup.style.background="rgba(0,0,0,.4)";
-    popup.style.zIndex="999999";
-
-    popup.appendChild(
-        document.createRange().createContextualFragment(html)
-    );
-
-    document.body.appendChild(popup);
-
-
-
-
-}
 function showAssignList(){
-let assigned = getAssignListData();
-    let html = `
-    <div style="
-    background:white;
-    padding:20px;
-    max-height:80vh;
-    overflow:auto;
-    ">
-
-    <h2>👤 Assign List</h2>
-<table
-style="
-width:100%;
-border-collapse:collapse;
-overflow:hidden;
-border-radius:12px;
-box-shadow:0 4px 15px rgba(0,0,0,.12);
-font-size:14px;
-">
-<tr style="
-background:linear-gradient(90deg,#2563eb,#1d4ed8);
-color:white;
-font-weight:bold;
-">
-    <th style="padding:12px;">🆔 Indus ID</th>
-    <th style="padding:12px;">🏢 Site Name</th>
-    <th style="padding:12px;">👷 Tech Name</th>
-    <th style="padding:12px;">📞 Tech Contact</th>
-    <th style="padding:12px;">👤 Assigned To</th>
-    <th style="padding:12px;">👨‍🔧 FSC Name</th>
-    <th style="padding:12px;">☎ FSC Contact</th>
-    <th style="padding:12px;">📍 Location</th>
-</tr>
-    `;
-
-    assigned.forEach(item=>{
-
-const indusId =
-    item["Indus ID"] ||
-    item["Indus Id"] ||
-    item["INDUS ID"] ||
-    item["INDUS_ID"] ||
-    "-";
-
-const siteName =
-    item["Name"] ||
-    item["Site Name"] ||
-    item["SITE NAME"] ||
-    item["Location"] ||
-    "-";
-
-const tech =
-    item["FSC Name"] ||
-    item["FSC NAME"] ||
-    item["Fsc Name"] ||
-    item["Tech Name"] ||
-    "-";
-
-const techNumber =
-    item["Tech Number"] ||
-    item["Tech Contact no"] ||
-    item["Mobile"] ||
-    item["Phone"] ||
-    item["Contact"] ||
-    "-";
-    
-    const fscName =
-    item["FSE Name"] ||
-    item["FSC Name"] ||
-    item["FSC NAME"] ||
-    item["Engineer Name"] ||
-    "-";
-
-const fscContact =
-    item["FSE Contact"] ||
-    item["FSC Contact"] ||
-    item["FSE Mobile"] ||
-    item["FSC Mobile"] ||
-    item["Engineer Mobile"] ||
-    item["Contact No"] ||
-    "-";
-
-        html += `
-<tr>
-
-    <td>${indusId}</td>
-
-    <td>${siteName}</td>
-
-    <td>${tech}</td>
-
-    <td>
-    ${
-        techNumber !== "-"
-        ? `
-        <a href="tel:${techNumber}"
-        style="
-        color:#2563eb;
-        text-decoration:none;
-        font-weight:bold;
-        ">
-        📞 ${techNumber}
-        </a>
-        `
-        : "-"
-    }
-</td>
-<td>${item.assignedTo || "-"}</td>
-<td>${fscName}</td>
-
-<td>
-    ${
-        fscContact !== "-"
-        ? `
-        <a href="tel:${fscContact}"
-        style="
-        color:#2563eb;
-        text-decoration:none;
-        font-weight:bold;
-        ">
-        📞 ${fscContact}
-        </a>
-        `
-        : "-"
-    }
-</td>
-
-    <td>
-        <button
-        onclick="openSiteLocation(
-        '${item["Lat"] || item["LAT"] || item["Latitude"] || item["latitude"] || item["Site Lat"] || ""}',
-        '${item["Long"] || item["LONG"] || item["Longitude"] || item["longitude"] || item["Lng"] || item["LNG"] || item["Site Long"] || ""}'
-        )"
-        style="
-        background:#16a34a;
-        color:white;
-        border:none;
-        padding:6px 10px;
-        border-radius:6px;
-        cursor:pointer;
-        ">
-        📍 Map
-        </button>
-    </td>
-
-</tr>
-`;
-    });
-
-    html += `
-    </table>
-
-    <br>
-
-    <button
-    onclick="this.parentElement.parentElement.remove()"
-    style="
-    background:#ef4444;
-    color:white;
-    border:none;
-    padding:10px 25px;
-    border-radius:8px;
-    cursor:pointer;
-    ">
-    Close
-    </button>
-
-    </div>
-    `;
-
-    const popup = document.createElement("div");
-
-    popup.style.position="fixed";
-    popup.style.left="0";
-    popup.style.top="0";
-    popup.style.width="100%";
-    popup.style.height="100%";
-    popup.style.background="rgba(0,0,0,.4)";
-    popup.style.zIndex="999999";
-
-    popup.appendChild(
-        document.createRange().createContextualFragment(html)
-    );
-
-    document.body.appendChild(popup);
-
-}
-function getAssignListData() {
 
     const reportIds = new Set();
 
-    allReportsData.forEach(r => {
-        reportIds.add(cleanIndusId(r.indusId));
+allReportsData.forEach(r => {
+    reportIds.add(cleanIndusId(r.indusId));
+});
+
+let assigned = excelData.filter(item => {
+
+    // Assigned hona chahiye
+    if (!item.assigned) return false;
+
+    const indusId = cleanIndusId(
+        item["Indus ID"] ||
+        item["Indus Id"] ||
+        item["INDUS ID"] ||
+        item["INDUS_ID"] ||
+        ""
+    );
+
+    // Complete ho gaya hai to Assign List me mat dikhao
+    if (reportIds.has(indusId)) return false;
+
+    // Hold ya Remark update ke baad bhi mat dikhao
+    if (item.pendingStatus && item.pendingStatus !== "Pending") return false;
+
+    return true;
+});
+
+    let html = `
+    <div style="
+    background:white;
+    padding:20px;
+    max-height:80vh;
+    overflow:auto;
+    ">
+
+    <h2>👤 Assign List</h2>
+<table
+style="
+width:100%;
+border-collapse:collapse;
+overflow:hidden;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,.12);
+font-size:14px;
+">
+<tr style="
+background:linear-gradient(90deg,#2563eb,#1d4ed8);
+color:white;
+font-weight:bold;
+">
+    <th style="padding:12px;">🆔 Indus ID</th>
+    <th style="padding:12px;">🏢 Site Name</th>
+    <th style="padding:12px;">👷 Tech Name</th>
+    <th style="padding:12px;">📞 Tech Contact</th>
+    <th style="padding:12px;">👤 Assigned To</th>
+    <th style="padding:12px;">👨‍🔧 FSC Name</th>
+    <th style="padding:12px;">☎ FSC Contact</th>
+    <th style="padding:12px;">📍 Location</th>
+</tr>
+    `;
+
+    assigned.forEach(item=>{
+
+const indusId =
+    item["Indus ID"] ||
+    item["Indus Id"] ||
+    item["INDUS ID"] ||
+    item["INDUS_ID"] ||
+    "-";
+
+const siteName =
+    item["Name"] ||
+    item["Site Name"] ||
+    item["SITE NAME"] ||
+    item["Location"] ||
+    "-";
+
+const tech =
+    item["FSC Name"] ||
+    item["FSC NAME"] ||
+    item["Fsc Name"] ||
+    item["Tech Name"] ||
+    "-";
+
+const techNumber =
+    item["Tech Number"] ||
+    item["Tech Contact no"] ||
+    item["Mobile"] ||
+    item["Phone"] ||
+    item["Contact"] ||
+    "-";
+    
+    const fscName =
+    item["FSE Name"] ||
+    item["FSC Name"] ||
+    item["FSC NAME"] ||
+    item["Engineer Name"] ||
+    "-";
+
+const fscContact =
+    item["FSE Contact"] ||
+    item["FSC Contact"] ||
+    item["FSE Mobile"] ||
+    item["FSC Mobile"] ||
+    item["Engineer Mobile"] ||
+    item["Contact No"] ||
+    "-";
+
+        html += `
+<tr>
+
+    <td>${indusId}</td>
+
+    <td>${siteName}</td>
+
+    <td>${tech}</td>
+
+    <td>
+    ${
+        techNumber !== "-"
+        ? `
+        <a href="tel:${techNumber}"
+        style="
+        color:#2563eb;
+        text-decoration:none;
+        font-weight:bold;
+        ">
+        📞 ${techNumber}
+        </a>
+        `
+        : "-"
+    }
+</td>
+<td>${item.assignedTo || "-"}</td>
+<td>${fscName}</td>
+
+<td>
+    ${
+        fscContact !== "-"
+        ? `
+        <a href="tel:${fscContact}"
+        style="
+        color:#2563eb;
+        text-decoration:none;
+        font-weight:bold;
+        ">
+        📞 ${fscContact}
+        </a>
+        `
+        : "-"
+    }
+</td>
+
+    <td>
+        <button
+        onclick="openSiteLocation(
+        '${item["Lat"] || item["LAT"] || item["Latitude"] || item["latitude"] || item["Site Lat"] || ""}',
+        '${item["Long"] || item["LONG"] || item["Longitude"] || item["longitude"] || item["Lng"] || item["LNG"] || item["Site Long"] || ""}'
+        )"
+        style="
+        background:#16a34a;
+        color:white;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        cursor:pointer;
+        ">
+        📍 Map
+        </button>
+    </td>
+
+</tr>
+`;
     });
 
-    return excelData.filter(item => {
+    html += `
+    </table>
 
-        // Assigned hona chahiye
-        if (!item.assigned) return false;
+    <br>
 
-        const indusId = cleanIndusId(
-            item["Indus ID"] ||
-            item["Indus Id"] ||
-            item["INDUS ID"] ||
-            item["INDUS_ID"] ||
-            ""
-        );
+    <button
+    onclick="this.parentElement.parentElement.remove()"
+    style="
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:10px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    ">
+    Close
+    </button>
 
-        // Complete remove
-        if (reportIds.has(indusId)) return false;
+    </div>
+    `;
 
-        // Hold remove
-        if (item.pendingStatus && item.pendingStatus !== "Pending")
-            return false;
+    const popup = document.createElement("div");
 
-        return true;
+    popup.style.position="fixed";
+    popup.style.left="0";
+    popup.style.top="0";
+    popup.style.width="100%";
+    popup.style.height="100%";
+    popup.style.background="rgba(0,0,0,.4)";
+    popup.style.zIndex="999999";
 
-    });
+    popup.appendChild(
+        document.createRange().createContextualFragment(html)
+    );
+
+    document.body.appendChild(popup);
 
 }
 function openSiteLocation(lat, lng){
@@ -2009,28 +1556,22 @@ if(d.data){
         document.getElementById("excelCount").innerText=excelData.length;
         console.log("Excel Data Sample:", excelData[0]);
         updateCompletedPending();
-        const assignData = getAssignListData();
-
-document.getElementById("assignCount").innerText = assignData.length;
-
-const card = document.getElementById("assignCard");
-
-card.style.display = assignData.length ? "block" : "none";
 
     });
 
-}function listenAssignedSites() {
+}
+function listenAssignedSites(){
 
     db.collection("pendingSites")
-    .onSnapshot(snapshot => {
+    .onSnapshot(snapshot=>{
 
         assignedSitesData = [];
 
-        snapshot.forEach(doc => {
+        snapshot.forEach(doc=>{
 
             const d = doc.data();
 
-            if (d.assignedTo) {
+            if(d.assignedTo){
 
                 assignedSitesData.push({
                     id: doc.id,
@@ -2041,10 +1582,8 @@ card.style.display = assignData.length ? "block" : "none";
 
         });
 
-        // Popup wale same filter se count nikalo
-        const assignData = getAssignListData();
-
-        document.getElementById("assignCount").innerText = assignData.length;
+        document.getElementById("assignCount").innerText =
+        assignedSitesData.length;
 
     });
 
@@ -2196,7 +1735,11 @@ document.getElementById("holdCount").innerText = hold;
 
     return { start, end };
 }
+function openAssignList(){
 
+    window.location.href = "assign.html";
+
+}
 function formatDate(date) {
   return date.getFullYear() + "-" +
     String(date.getMonth() + 1).padStart(2, "0") + "-" +
@@ -2575,24 +2118,19 @@ function handleImport() {
         });
       }
 
-// ---------------- EXCEL ----------------
-else {
+      // ---------------- EXCEL ----------------
+      else {
 
-    const workbook = XLSX.read(
-        new Uint8Array(e.target.result),
-        { type: "array" }
-    );
+        const workbook = XLSX.read(
+          new Uint8Array(e.target.result),
+          { type: "array" }
+        );
 
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
 
-    // Excel → JSON
-    data = XLSX.utils.sheet_to_json(sheet, {
-        defval: "",
-        raw: false
-    });
-
-}
+    
+      }
 
       console.log("Imported Data:", data);
 
@@ -2789,76 +2327,83 @@ document
 }
 function showPage(page){
 
-const dashboard = document.getElementById("dashboardSection");
-const attendance = document.getElementById("attendanceSection");
-const reports = document.getElementById("reportsSection");
-const expense = document.getElementById("expenseSection");
-const stock = document.getElementById("stockPage");
-const createid = document.getElementById("createidSection");
+    const dashboard = document.getElementById("dashboardSection");
+    const attendance = document.getElementById("attendanceSection");
+    const reports = document.getElementById("reportsSection");
+    const expense = document.getElementById("expenseSection");
+    const stock = document.getElementById("stockPage");
+    const createid = document.getElementById("createidSection");
+    const assign = document.getElementById("assignSection");
 
-/* Hide All */
+    // Hide All
+    dashboard.style.display = "none";
+    attendance.style.display = "none";
+    reports.style.display = "none";
+    expense.style.display = "none";
 
-dashboard.style.display = "none";
-attendance.style.display = "none";
-reports.style.display = "none";
-expense.style.display = "none";
+    if(stock) stock.style.display = "none";
+    if(createid) createid.style.display = "none";
+    if(assign) assign.style.display = "none";
 
-if(stock)
-stock.style.display = "none";
+    // Show Selected
+    if(page==="dashboard"){
 
-createid.style.display = "none";
+        dashboard.style.display="block";
 
-/* Show Selected */
+    }
+    else if(page==="attendance"){
 
-if(page==="dashboard"){
+        attendance.style.display="block";
 
-    dashboard.style.display="block";
+    }
+    else if(page==="reports"){
 
-}
-else if(page==="attendance"){
+        reports.style.display="block";
 
-    attendance.style.display="block";
+    }
+    else if(page==="expense"){
 
-}
-else if(page==="reports"){
+        expense.style.display="block";
 
-    reports.style.display="block";
+    }
+    else if(page==="stock"){
 
-}
-else if(page==="expense"){
+        if(stock) stock.style.display="block";
 
-    expense.style.display="block";
+    }
+    else if(page==="createid"){
 
-}
-else if(page==="stock"){
+        if(userRole!=="admin"){
 
-    if(stock)
-    stock.style.display="block";
+            alert("Access Denied");
+            return;
 
-}
-else if(page==="createid"){
+        }
 
-    if(userRole!=="admin"){
+        createid.style.display="block";
 
-        alert("Access Denied");
+    }
+    else if(page==="assign"){
 
-        return;
+        if(assign){
+
+            assign.style.display="block";
+
+            // Assign List Load
+            if(typeof listenAssignedSites === "function"){
+                listenAssignedSites();
+            }
+
+        }
 
     }
 
-    createid.style.display="block";
+    // Mobile
+    if(window.innerWidth<=768){
+        document.querySelector(".sidebar").classList.add("hide");
+    }
 
-}
-
-/* Mobile */
-
-if(window.innerWidth<=768){
-
-document.querySelector(".sidebar").classList.add("hide");
-
-}
-
-window.scrollTo(0,0);
+    window.scrollTo(0,0);
 
 }
 window.showPresentUsers = function () {
@@ -3191,54 +2736,27 @@ async function importPendingCSV() {
 
     const file = document.getElementById("csvFile").files[0];
 
-   if (!file) {
-    alert("Please select a CSV or Excel file");
-    return;
-}
-
-const ext = file.name.split(".").pop().toLowerCase();
-
-if (!["csv", "xlsx", "xls"].includes(ext)) {
-    alert("❌ Only CSV, XLSX and XLS files are allowed.");
-    return;
-}
+    if (!file) {
+        alert("Please select CSV file");
+        return;
+    }
 
     const reader = new FileReader();
 
     reader.onload = async function (e) {
 
-   let data = [];
+        const text = e.target.result;
 
-if (ext === "csv") {
+        const workbook = XLSX.read(text, {
+            type: "binary"
+        });
 
-    const text = e.target.result;
+        const sheet =
+            workbook.Sheets[workbook.SheetNames[0]];
 
-    const workbook = XLSX.read(text, {
-        type: "binary"
-    });
-
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-    data = XLSX.utils.sheet_to_json(sheet, {
-        defval: ""
-    });
-
-} else {
-
-    const workbook = XLSX.read(
-        new Uint8Array(e.target.result),
-        {
-            type: "array"
-        }
-    );
-
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-    data = XLSX.utils.sheet_to_json(sheet, {
-        defval: ""
-    });
-
-}
+   const data = XLSX.utils.sheet_to_json(sheet,{
+    defval:""
+});
 // Project ID = File Name
 const projectId = file.name.replace(/\.[^/.]+$/, "");
 console.log("Project ID =", projectId);
@@ -3309,11 +2827,7 @@ await db.collection("pendingMeta")
         );
 
     };
-if (ext === "csv") {
-    reader.readAsBinaryString(file);
-} else {
-    reader.readAsArrayBuffer(file);
-}
+reader.readAsBinaryString(file);
 
 }
 
@@ -3442,19 +2956,8 @@ allReportsData.forEach(r => {
 });
 
 const projectCounts = {};
+
 excelData.forEach(item => {
-    console.log(
-    "Project:",
-    item.projectId,
-    "| Indus:",
-    item["Indus ID"],
-    "| pendingStatus:",
-    item.pendingStatus,
-    "| status:",
-    item.status,
-    "| remark:",
-    item.remark
-);
 
     const indusId = cleanIndusId(
         item["Indus ID"] ||
@@ -3464,8 +2967,8 @@ excelData.forEach(item => {
         item["IndusID"]
     );
 
-    // Completed site skip
-    if (reportIds.has(indusId)) return;
+    // Report me mil gaya to Pending nahi hai
+    if(reportIds.has(indusId)) return;
 
     const project = (
         item.projectId ||
@@ -3474,27 +2977,7 @@ excelData.forEach(item => {
         "Default Project"
     ).trim();
 
-    // 👇 Hold Mode
-    if (currentMode === "hold") {
-
-        if (
-            item.pendingStatus &&
-            item.pendingStatus !== "Pending"
-        ) {
-            projectCounts[project] =
-                (projectCounts[project] || 0) + 1;
-        }
-
-    }
-
-    // 👇 Pending Mode
-    else {
-if ((item.remark || "").trim() !== "") {
-    projectCounts[project] =
-        (projectCounts[project] || 0) + 1;
-}
-
-    }
+    projectCounts[project] = (projectCounts[project] || 0) + 1;
 
 });
     let html = `
@@ -3502,13 +2985,8 @@ if ((item.remark || "").trim() !== "") {
         📂 Select Project
     </div>
     `;
-const holdProjects = projects.filter(project => {
-    return (projectCounts[project] || 0) > 0;
-});
-    Object.keys(projectCounts)
-.sort()
-.forEach(project => {
-    if (projectCounts[project] <= 0) return;
+
+    projects.forEach(project=>{
 
         html += `
         <div
@@ -4753,8 +4231,7 @@ await db.collection("pendingSites")
     remarkBy: currentUser,
     remarkTime: new Date().toISOString(),
 
-   pendingStatus: remark ? "Hold" : "Pending",
-status: remark ? "Hold" : "Pending"
+    pendingStatus: remark ? "Hold" : ""
 
 });
         alert("✅ Remark Updated");
@@ -4923,46 +4400,6 @@ showPendingTechMenu();
 
         console.error(err);
         alert("❌ Unassign Failed");
-
-    }
-
-}
-async function unassignAllSites() {
-
-    if (!confirm("⚠️ Sabhi Assigned Sites ko Unassign karna hai?")) {
-        return;
-    }
-
-    try {
-
-        const snapshot = await db.collection("pendingSites").get();
-
-        const batch = db.batch();
-
-        snapshot.forEach(doc => {
-
-            const d = doc.data();
-
-            if (d.assigned) {
-
-                batch.update(doc.ref, {
-                    assigned: false,
-                    assignedTo: "",
-                    assignedTime: firebase.firestore.FieldValue.delete()
-                });
-
-            }
-
-        });
-
-        await batch.commit();
-
-        alert("✅ All Assigned Sites Unassigned Successfully");
-
-    } catch (err) {
-
-        console.error(err);
-        alert("❌ Error: " + err.message);
 
     }
 
