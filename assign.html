@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Assign List</title>
+
+<link rel="stylesheet" href="assign.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Top -->
+    <div class="topBar">
+
+        <div class="title">
+            👤 Assign List
+        </div>
+
+    </div>
+
+
+    <!-- Summary Cards -->
+    <div class="summaryCards">
+
+        <div class="card">
+            <div class="cardTitle">📋 Total Records</div>
+            <div class="cardValue" id="totalRecords">0</div>
+        </div>
+
+        <div class="card">
+            <div class="cardTitle">👀 Showing</div>
+            <div class="cardValue" id="showingRecords">0</div>
+        </div>
+
+        <div class="card">
+            <div class="cardTitle">🔍 Filtered</div>
+            <div class="cardValue" id="filteredRecords">0</div>
+        </div>
+
+        <div class="card">
+            <div class="cardTitle">📄 Total Pages</div>
+            <div class="cardValue" id="totalPages">0</div>
+        </div>
+
+    </div>
+
+
+    <!-- Toolbar -->
+
+    <div class="toolbar">
+
+        <div class="searchBox">
+
+            <span>🔍</span>
+
+            <input
+                type="text"
+                id="globalSearch"
+                placeholder="Search Anything..."
+                onkeyup="globalSearch()">
+
+        </div>
+<div class="toolbarButtons">
+
+    <select id="pageSize" class="selectBox" onchange="changePageSize()">
+
+        <option value="25">25 Rows</option>
+
+        <option value="50" selected>50 Rows</option>
+
+        <option value="100">100 Rows</option>
+
+        <option value="200">200 Rows</option>
+
+    </select>
+
+    <button class="btn refreshBtn">
+        🔄 Refresh
+    </button>
+
+    <button class="btn excelBtn">
+        📥 Export Excel
+    </button>
+
+</div>
+
+    <!-- Table -->
+
+    <div class="tableCard">
+        <div class="pagination">
+
+    <button class="pageBtn" onclick="prevPage()">◀ Previous</button>
+
+    <span id="pageInfo">Page 1</span>
+
+    <button class="pageBtn" onclick="nextPage()">Next ▶</button>
+
+</div>
+
+        <div class="tableWrapper">
+
+            <table id="assignTable">
+
+                <thead>
+
+                    <tr>
+
+                       <th onclick="sortTable(0)">Indus ID ⬍</th>
+                       <th onclick="sortTable(1)">Site Name ⬍</th>
+
+                       <th onclick="sortTable(2)">Tech Name ⬍</th>
+
+                       <th onclick="sortTable(3)">Tech Contact ⬍</th>
+
+                       <th onclick="sortTable(4)">Assigned To ⬍</th>
+
+                       <th onclick="sortTable(5)">FSC Name ⬍</th>
+
+                       <th onclick="sortTable(6)">FSC Contact ⬍</th>
+
+                       <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>123456</td>
+                        <td>ABC Tower</td>
+                        <td>Rakesh</td>
+                        <td>9876543210</td>
+                        <td>Manglesh</td>
+                        <td>Amit</td>
+                        <td>9876500000</td>
+
+                        <td>
+
+                            <button class="mapBtn">
+                                📍 Map
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="assign.js"></script>
+
+
+</body>
+
+</html>
