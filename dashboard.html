@@ -1072,6 +1072,7 @@ let originalHeaders = [];
 let selectedTechPending = [];
 let selectedTechName = "";
 let selectedProject = "";
+let currentAssignCount = 0;
 
 let allPendingTechData = {};
 let assignedSitesData = [];
@@ -1208,6 +1209,7 @@ let assigned = excelData.filter(item => {
 
     return true;
 });
+document.getElementById("assignCount").innerText = assigned.length;
 
     let html = `
     <div style="
@@ -1582,9 +1584,8 @@ function listenAssignedSites(){
 
         });
 
-      document.getElementById("assignCount").innerText =
+         document.getElementById("assignCount").innerText =
          currentAssignCount;
-
 
     });
 
@@ -3455,74 +3456,464 @@ function downloadPendingExcel() {
     // Download
     XLSX.writeFile(wb, "Pending_Sites.xlsx");
 
-}
+}function getPendingDisplayValue(row, field){
 
-function downloadPendingTechExcel(techName){
+    // ==========================================
+    // FIELD ALIASES
+    // ==========================================
 
-    let techData = [];
+    const aliases = {
 
-    if(allPendingTechData[techName]){
+        "Indus ID": [
+            "Indus ID",
+            "Indus Id",
+            "INDUS ID",
+            "INDUS_ID",
+            "IndusID"
+        ],
 
-        techData = allPendingTechData[techName];
+        "Name": [
+            "Name",
+            "NAME",
+            "Site Name",
+            "SiteName"
+        ],
+
+        "Tech Name": [
+            "Tech Name",
+            "TECH NAME",
+            "TechName",
+            "Tech name",
+            "FSC Name",
+            "FSC NAME",
+            "Fsc Name"
+        ],
+
+        "Tech Contact No.": [
+            "Tech Contact no",
+            "Tech Contact No",
+            "Tech Contact No.",
+            "Tech Contact",
+            "Tech Contact Number",
+            "Tech Mobile",
+            "Tech Mobile No",
+            "Tech Mobile Number",
+            "TECH CONTACT",
+            "TECH CONTACT NO",
+            "TECH CONTACT NO."
+        ],
+
+        "FSE Name": [
+            "FSE Name",
+            "FSE NAME",
+            "Fse Name"
+        ],
+
+        "FSE Contact No.": [
+            "FSE Contact No.",
+            "FSE Contact No",
+            "FSE Contact",
+            "FSE Contact Number",
+            "FSE Mobile",
+            "FSE Mobile No",
+            "FSE Mobile Number",
+            "FSE CONTACT",
+            "FSE CONTACT NO",
+            "FSE CONTACT NO."
+        ],
+
+        "Area": [
+            "Area",
+            "AREA"
+        ],
+
+        "AOM Name": [
+            "AOM Name",
+            "AOM NAME",
+            "Aom Name"
+        ],
+
+        "AOM Contact No.": [
+            "AOM Contact No.",
+            "AOM Contact No",
+            "AOM Contact",
+            "AOM Contact Number",
+            "AOM Mobile",
+            "AOM Mobile No",
+            "AOM Mobile Number",
+            "AOM CONTACT",
+            "AOM CONTACT NO",
+            "AOM CONTACT NO."
+        ],
+
+        "Lat": [
+            "Lat",
+            "LAT",
+            "Latitude",
+            "latitude"
+        ],
+
+        "Long": [
+            "Long",
+            "LONG",
+            "Longitude",
+            "longitude",
+            "Lon"
+        ],
+
+        "Remarks": [
+            "Remark",
+            "REMARK",
+            "remark",
+            "Remarks",
+            "REMARKS",
+            "remarks"
+        ]
+
+    };
+
+
+    // ==========================================
+    // NORMALIZE FUNCTION
+    // Example:
+    // "Tech Contact no" -> "techcontactno"
+    // "Tech Contact No." -> "techcontactno"
+    // ==========================================
+
+    const normalize = value => {
+
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+
+    };
+
+
+    // ==========================================
+    // 1. EXACT ALIAS MATCH
+    // ==========================================
+
+    const keys = aliases[field] || [field];
+
+    for(const key of keys){
+
+        if(
+            Object.prototype.hasOwnProperty.call(row, key) &&
+            row[key] !== undefined &&
+            row[key] !== null &&
+            String(row[key]).trim() !== ""
+        ){
+
+            return row[key];
+
+        }
 
     }
+
+
+    // ==========================================
+    // 2. NORMALIZED MATCH
+    // Isse space / dot / capital ka problem nahi hoga
+    // ==========================================
+
+    const rowKeys = Object.keys(row);
+
+    const normalizedAliases = keys.map(key =>
+        normalize(key)
+    );
+
+
+    for(const rowKey of rowKeys){
+
+        const normalizedRowKey = normalize(rowKey);
+
+        if(
+            normalizedAliases.includes(normalizedRowKey) &&
+            row[rowKey] !== undefined &&
+            row[rowKey] !== null &&
+            String(row[rowKey]).trim() !== ""
+        ){
+
+            return row[rowKey];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // 3. FLEXIBLE CONTACT MATCH
+    // ==========================================
+
+    if(field === "Tech Contact No."){
+
+        const key = rowKeys.find(k => {
+
+            const n = normalize(k);
+
+            return (
+                n.includes("tech") &&
+                n.includes("contact")
+            );
+
+        });
+
+        if(
+            key &&
+            row[key] !== undefined &&
+            row[key] !== null &&
+            String(row[key]).trim() !== ""
+        ){
+
+            return row[key];
+
+        }
+
+    }
+
+
+    if(field === "FSE Contact No."){
+
+        const key = rowKeys.find(k => {
+
+            const n = normalize(k);
+
+            return (
+                n.includes("fse") &&
+                n.includes("contact")
+            );
+
+        });
+
+        if(
+            key &&
+            row[key] !== undefined &&
+            row[key] !== null &&
+            String(row[key]).trim() !== ""
+        ){
+
+            return row[key];
+
+        }
+
+    }
+
+
+    if(field === "AOM Contact No."){
+
+        const key = rowKeys.find(k => {
+
+            const n = normalize(k);
+
+            return (
+                n.includes("aom") &&
+                n.includes("contact")
+            );
+
+        });
+
+        if(
+            key &&
+            row[key] !== undefined &&
+            row[key] !== null &&
+            String(row[key]).trim() !== ""
+        ){
+
+            return row[key];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // 4. FLEXIBLE NAME MATCH
+    // ==========================================
+
+    if(field === "Tech Name"){
+
+        const key = rowKeys.find(k => {
+
+            const n = normalize(k);
+
+            return (
+                n.includes("tech") &&
+                n.includes("name")
+            );
+
+        });
+
+        if(
+            key &&
+            row[key] !== undefined &&
+            row[key] !== null &&
+            String(row[key]).trim() !== ""
+        ){
+
+            return row[key];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // 5. FIRESTORE REMARK
+    // ==========================================
+
+    if(field === "Remarks"){
+
+        return (
+            row.remark ||
+            row["Remark"] ||
+            row["REMARK"] ||
+            row["remarks"] ||
+            row.remarkBy ||
+            ""
+        );
+
+    }
+
+
+    // ==========================================
+    // 6. NOTHING FOUND
+    // ==========================================
+
+    return "";
+
+}
+function downloadPendingTechExcel(techName){
+
+    // ==========================================
+    // Selected technician ka already filtered data
+    // ==========================================
+
+    let techData = Array.isArray(selectedTechPending)
+        ? selectedTechPending
+        : [];
+
+
+    console.log("Excel Tech:", techName);
+    console.log("Excel Mode:", currentMode);
+    console.log("Excel Data:", techData);
+    console.log("Excel Count:", techData.length);
 
 
     if(techData.length === 0){
 
-        alert("No Data Found");
+        alert(
+            currentMode === "hold"
+            ? "❌ No Hold Data Found"
+            : "❌ No Pending Data Found"
+        );
 
         return;
     }
-let headers = originalHeaders.length
-    ? [...originalHeaders]
-    : Object.keys(pending[0]);
 
 
-// Remark column add karo
-if(!headers.includes("Remark")){
-    headers.push("Remark");
-}
+    // ==========================================
+    // SIRF YE COLUMNS EXCEL MEIN JAYENGE
+    // ==========================================
 
-const sheetData = [
+    const headers = [
+    "Indus ID",
+    "Name",
+    "Tech Name",
+    "Tech Contact No.",
+    "FSE Name",
+    "FSE Contact No.",
+    "Area",
+    "AOM Name",
+    "AOM Contact No.",
+    "Lat",
+    "Long",
+    "Remarks"
+];
+
+    // ==========================================
+    // Excel rows
+    // ==========================================
+
+   const sheetData = [
     headers,
-    ...techData.map(row =>
-       headers.map(header => {
 
-    if(header === "Remark"){
+    ...techData.map(row => {
 
-        return row.remark || "";
+        return headers.map(header => {
 
-    }
+            return getPendingDisplayValue(
+                row,
+                header
+            );
 
-    return row[header] ?? "";
+        });
 
-})
-    )
+    })
 ];
 
 
-const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    // ==========================================
+    // Excel create
+    // ==========================================
+
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+    const wb = XLSX.utils.book_new();
 
 
-const wb = XLSX.utils.book_new();
+    // Excel sheet name max 31 characters
+    let sheetName = String(techName || "Pending")
+        .replace(/[\\\/\?\*\[\]:]/g, "_")
+        .substring(0, 31);
+
+    if(!sheetName){
+        sheetName = "Pending";
+    }
 
 
-XLSX.utils.book_append_sheet(
-    wb,
-    ws,
-    techName
-);
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        sheetName
+    );
 
 
-XLSX.writeFile(
-    wb,
-    techName + "_Pending.xlsx"
-);
+    // ==========================================
+    // Column width
+    // ==========================================
 
+    ws["!cols"] = [
+        { wch: 16 }, // Indus ID
+        { wch: 18 }, // Name
+        { wch: 22 }, // Tech Name
+        { wch: 18 }, // Tech Contact
+        { wch: 22 }, // FSE Name
+        { wch: 18 }, // FSE Contact
+        { wch: 18 }, // Area
+        { wch: 22 }, // AOM Name
+        { wch: 18 }, // AOM Contact
+        { wch: 14 }, // Lat
+        { wch: 14 }, // Long
+        { wch: 30 }  // Remarks
+    ];
+
+
+    // ==========================================
+    // Download
+    // ==========================================
+
+    const modeName =
+        currentMode === "hold"
+        ? "Hold"
+        : "Pending";
+
+
+    XLSX.writeFile(
+        wb,
+        `${techName}_${modeName}.xlsx`
+    );
 
 }
-
 function getPendingData(){
 
     const reportIds = new Set();
@@ -3707,19 +4098,20 @@ async function deleteProject(projectId){
 function showTechPendingPopup(name){
 
     document.getElementById("techPendingBody").innerHTML = `
-    
+
     <div style="padding:20px;">
 
         <h2>👷 ${name}</h2>
 
         <div style="margin:15px 0;font-size:18px;">
-            Total Pending :
+            ${currentMode === "hold" ? "Total Hold" : "Total Pending"} :
             <b>${selectedTechPending.length}</b>
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
 
-            <button onclick="showTechPendingList()"
+            <button
+            onclick="showTechPendingList()"
             style="
             flex:1;
             padding:10px;
@@ -3729,23 +4121,27 @@ function showTechPendingPopup(name){
             border-radius:8px;
             cursor:pointer;">
                 📋 Show Pending List
-           <button
-           onclick="event.stopPropagation();downloadPendingTechExcel('${name}')"
-         style="
-         background:#16a34a;
-         color:white;
-         border:none;
-         padding:6px 12px;
-         border-radius:6px;
-         cursor:pointer;
-         ">
-         📥 Excel
-        </button>
+            </button>
+
+            <button
+            onclick="event.stopPropagation();downloadPendingTechExcel('${name}')"
+            style="
+            background:#16a34a;
+            color:white;
+            border:none;
+            padding:10px 16px;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:bold;">
+                📥 Excel
+            </button>
+
         </div>
 
         <br>
 
-        <button onclick="closeTechPendingPopup()"
+        <button
+        onclick="closeTechPendingPopup()"
         style="
         width:100%;
         padding:12px;
@@ -3754,16 +4150,16 @@ function showTechPendingPopup(name){
         border:none;
         border-radius:8px;
         cursor:pointer;">
-        
+
             ❌ Close
+
         </button>
 
     </div>
+
     `;
 
-    // Popup ko Flex se open karo
     document.getElementById("pendingTechPopup").style.display = "flex";
-
 }
 function showTechPendingList(){
 
