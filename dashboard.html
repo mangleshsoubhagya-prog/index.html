@@ -3439,6 +3439,183 @@ font-weight:bold;
 document.getElementById("pendingTechList").innerHTML=html;
 
 }
+function downloadAllPendingExcel(){
+
+    if(!selectedProject){
+        alert("⚠ Please select a project first.");
+        return;
+    }
+
+    const reportIds = new Set();
+
+    allReportsData.forEach(r => {
+        const id = cleanIndusId(
+            r.indusId ||
+            r["Indus ID"] ||
+            r["Indus Id"] ||
+            r["INDUS ID"] ||
+            ""
+        );
+
+        if(id){
+            reportIds.add(id);
+        }
+    });
+
+    let downloadData = [];
+
+    excelData.forEach(item => {
+
+        // ============================
+        // PROJECT FILTER
+        // ============================
+
+        if(
+            selectedProject &&
+            (item.projectId || "") !== selectedProject
+        ){
+            return;
+        }
+
+        // ============================
+        // INDUS ID
+        // ============================
+
+        const id = cleanIndusId(
+            item["Indus ID"] ||
+            item["Indus Id"] ||
+            item["INDUS ID"] ||
+            ""
+        );
+
+        if(!id) return;
+
+        // ============================
+        // COMPLETED SKIP
+        // ============================
+
+        if(reportIds.has(id)){
+            return;
+        }
+
+        // ============================
+        // REMARK / STATUS
+        // ============================
+
+        const csvRemark = String(
+            item["Remark"] ||
+            item["REMARK"] ||
+            item["remark"] ||
+            ""
+        ).trim();
+
+        const pendingStatus = String(
+            item.pendingStatus || ""
+        ).trim();
+
+        const remark = String(
+            item.remark || ""
+        ).trim();
+
+        // ============================
+        // HOLD / PENDING
+        // ============================
+
+        const isHold =
+            pendingStatus === "Hold" ||
+            remark !== "" ||
+            csvRemark !== "";
+
+        const isPending = !isHold;
+
+        // ============================
+        // CURRENT MODE FILTER
+        // ============================
+
+        if(currentMode === "pending" && !isPending){
+            return;
+        }
+
+        if(currentMode === "hold" && !isHold){
+            return;
+        }
+
+        // ============================
+        // ADD DATA
+        // ============================
+
+        downloadData.push({
+            ...item
+        });
+
+    });
+
+    // ============================
+    // NO DATA
+    // ============================
+
+    if(downloadData.length === 0){
+
+        alert(
+            currentMode === "hold"
+            ? "⚠ इस project में कोई Hold data नहीं मिला।"
+            : "⏳ इस project में कोई Pending data नहीं मिला।"
+        );
+
+        return;
+    }
+
+    // ============================
+    // EXCEL DOWNLOAD
+    // ============================
+
+    try{
+
+        const worksheet =
+            XLSX.utils.json_to_sheet(downloadData);
+
+        const workbook =
+            XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            currentMode === "hold"
+                ? "Hold"
+                : "Pending"
+        );
+
+        const projectName =
+            String(selectedProject)
+            .replace(/[\\/:*?"<>|]/g, "_");
+
+        const modeName =
+            currentMode === "hold"
+            ? "Hold"
+            : "Pending";
+
+        const fileName =
+            `${projectName}_${modeName}_All.xlsx`;
+
+        XLSX.writeFile(
+            workbook,
+            fileName
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            "Download Excel Error:",
+            error
+        );
+
+        alert(
+            "❌ Excel Download Failed\n" +
+            error.message
+        );
+    }
+}
 function openTechPending(name){
 selectedTechName = name;
 const reportIds=new Set();
