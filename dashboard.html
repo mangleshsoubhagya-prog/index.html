@@ -965,6 +965,9 @@ style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;">
     <option value="admin">Admin</option>
 
 </select>
+<button onclick="openMap()">
+    🗺️ Map
+</button>
 
 <select id="newEnabled"
 style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;">
@@ -1178,6 +1181,13 @@ function listenAttendance(){
         loadSalarySummary();
 
     });
+
+}
+function openMap(){
+
+    document.getElementById("mapSection").style.display = "block";
+
+    sendAllPendingSitesToMap();
 
 }
 function showAssignList(){
@@ -2758,12 +2768,14 @@ async function importPendingCSV() {
 
    const data = XLSX.utils.sheet_to_json(sheet,{
     defval:""
+    
 });
 // Project ID = File Name
 const projectId = file.name.replace(/\.[^/.]+$/, "");
 console.log("Project ID =", projectId);
 // Excel data memory me save karo
 excelData = data;
+ sendCSVToMap();
 
 // Header save karo
 originalHeaders = Object.keys(data[0]);
@@ -2830,6 +2842,162 @@ await db.collection("pendingMeta")
 
     };
 reader.readAsBinaryString(file);
+
+}
+function sendCSVToMap(){
+
+    const mapFrame = document.querySelector(
+        'iframe[src="map/map.html"]'
+    );
+
+    if(!mapFrame){
+
+        console.log("⚠ Map iframe नहीं मिला");
+
+        return;
+
+    }
+
+
+    const sendData = () => {
+
+        mapFrame.contentWindow.postMessage({
+
+            type: "CSV_DATA",
+
+            data: excelData || []
+
+        }, "*");
+
+
+        console.log(
+            "📤 All CSV data sent to Map:",
+            (excelData || []).length
+        );
+
+    };
+
+
+    // Map iframe load होने पर
+    mapFrame.onload = function(){
+
+        sendData();
+
+    };
+
+
+    // अगर map पहले से loaded है
+    setTimeout(() => {
+
+        sendData();
+
+    }, 500);
+
+}
+async function sendAllPendingSitesToMap(){
+
+    try{
+
+        const snapshot =
+            await db.collection("pendingSites").get();
+
+
+        const allMapData = [];
+
+
+        snapshot.forEach(doc => {
+
+            const d = doc.data();
+
+
+            let row = {
+                ...(d.data || {})
+            };
+
+
+            // Firestore projectId
+            row.projectId =
+                d.projectId ||
+                row.projectId ||
+                "";
+
+
+            // Firestore ID
+            row.firestoreId = doc.id;
+
+
+            // Firestore status
+            row.pendingStatus =
+                d.pendingStatus ||
+                d.status ||
+                row.pendingStatus ||
+                "";
+
+
+            // Firestore remark
+            row.remark =
+                d.remark ||
+                row.remark ||
+                "";
+
+
+            row.remarkBy =
+                d.remarkBy ||
+                row.remarkBy ||
+                "";
+
+
+            allMapData.push(row);
+
+        });
+
+
+        console.log(
+            "🗺️ All Pending Sites:",
+            allMapData.length
+        );
+
+
+        const mapFrame =
+            document.querySelector(
+                'iframe[src="map/map.html"]'
+            );
+
+
+        if(!mapFrame){
+
+            console.log(
+                "❌ map.html iframe नहीं मिला"
+            );
+
+            return;
+
+        }
+
+
+        mapFrame.contentWindow.postMessage({
+
+            type: "CSV_DATA",
+
+            data: allMapData
+
+        }, "*");
+
+
+        console.log(
+            "📤 All Projects sent to Map:",
+            allMapData.length
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "❌ Map data error:",
+            error
+        );
+
+    }
 
 }
 
@@ -2958,19 +3126,9 @@ allReportsData.forEach(r => {
 });
 
 const projectCounts = {};
+console.log("PROJECT COUNT DEBUG");
 
 excelData.forEach(item => {
-
-    const indusId = cleanIndusId(
-        item["Indus ID"] ||
-        item["Indus Id"] ||
-        item["INDUS ID"] ||
-        item["INDUS_ID"] ||
-        item["IndusID"]
-    );
-
-    // Report me mil gaya to Pending nahi hai
-    if(reportIds.has(indusId)) return;
 
     const project = (
         item.projectId ||
@@ -2979,7 +3137,46 @@ excelData.forEach(item => {
         "Default Project"
     ).trim();
 
-    projectCounts[project] = (projectCounts[project] || 0) + 1;
+    if (project === "Raichur Installation Sites") {
+
+        console.log("RAICHUR DATA:", {
+            indusId: item["Indus ID"],
+            pendingStatus: item.pendingStatus,
+            status: item.status,
+            Status: item.Status,
+            remark: item.remark,
+            Remark: item.Remark
+        });
+
+    }
+});
+excelData.forEach(item => {
+
+    const project = (
+        item.projectId ||
+        item.Project ||
+        item.project ||
+        "Default Project"
+    ).trim();
+
+    // Same logic as dashboard:
+    // Completed = count nahi
+    // Hold = count nahi
+    // Pending = count hoga
+    const type = getSiteType(item, reportIds);
+
+// Pending card par sirf Pending
+// Hold card par sirf Hold
+const wantedType = currentMode === "hold"
+    ? "hold"
+    : "pending";
+
+if (type !== wantedType) {
+    return;
+}
+
+projectCounts[project] =
+    (projectCounts[project] || 0) + 1;
 
 });
     let html = `
